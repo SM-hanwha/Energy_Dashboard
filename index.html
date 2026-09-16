@@ -66,6 +66,28 @@ button,input,select,textarea{font-family:inherit;font-size:13px}
 .sesrow .dl{font-size:10px;color:#2563eb;cursor:pointer;text-decoration:underline;white-space:nowrap;flex-shrink:0}
 .row.parentrow{cursor:pointer}.row.parentrow:hover{background:#f9fafb}
 .row.kidrow{margin-left:22px}
+.picked{display:flex;flex-wrap:wrap;gap:5px;min-height:30px;align-items:center;background:#f8fafc;border:1px solid #e5e7eb;border-radius:8px;padding:6px 8px;margin-top:4px}
+.pchip2{display:inline-flex;align-items:center;gap:5px;background:#1f2937;color:#fff;border-radius:20px;padding:3px 9px;font-size:11.5px;font-weight:700}
+.pchip2 .x{cursor:pointer;opacity:.7}.pchip2 .x:hover{opacity:1}
+.gchips{display:flex;flex-wrap:wrap;gap:5px;margin:8px 0}
+.gchips .chip{height:24px;font-size:10.5px;padding:0 9px}
+.picklist{max-height:230px;overflow-y:auto;border:1px solid #e5e7eb;border-radius:8px}
+.pitem{display:flex;align-items:center;gap:8px;padding:7px 10px;border-bottom:1px solid #f3f4f6;cursor:pointer}
+.pitem:last-child{border-bottom:none}
+.pitem:hover{background:#f8fafc}
+.pitem.on{background:#eff6ff}
+.pitem .mk{width:20px;height:20px;border-radius:50%;border:1px solid #d1d5db;display:flex;align-items:center;justify-content:center;font-size:11px;color:#9ca3af;flex-shrink:0}
+.pitem.on .mk{background:#2563eb;border-color:#2563eb;color:#fff}
+.uchecks{display:flex;flex-wrap:wrap;gap:7px;margin-top:6px}
+.ucheck{display:flex;align-items:center;gap:5px;font-size:12px;cursor:pointer;color:#1f2937}
+.ucheck.kid{padding-left:12px;color:#6b7280}
+.rolechips{display:flex;flex-wrap:wrap;gap:6px;margin:4px 0 12px}
+.rolechips .chip{height:30px;font-size:12px;padding:0 14px;font-weight:700}
+.gsec{margin-bottom:16px}
+.gsec-h{display:flex;align-items:center;gap:8px;padding:6px 2px;margin-bottom:6px;border-bottom:1px solid #e5e7eb}
+.gsec-h .cnt{font-size:11.5px;font-weight:800;color:#374151}
+.gsec-h .desc{font-size:11px;color:#9ca3af}
+.urow{display:flex;align-items:center;gap:10px;background:#fff;border:1px solid #e5e7eb;border-radius:9px;padding:9px 12px;margin-bottom:6px}
 .rolepill{display:inline-block;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:800}
 .rolepill.admin{background:#1f2937;color:#fff}.rolepill.full_viewer{background:#eff6ff;color:#1d4ed8}.rolepill.uploader{background:#ecfdf5;color:#047857}.rolepill.viewer{background:#f3f4f6;color:#4b5563}
 .acct{font-size:10px;color:#9ca3af;border:1px solid #e5e7eb;border-radius:10px;padding:1px 7px}.acct.on{color:#047857;border-color:#a7f3d0;background:#ecfdf5}
@@ -822,13 +844,14 @@ const canView      = uid => isAdmin() || isFullViewer() || assigned(uid)
 const canUp        = uid => isAdmin() || (S.profile?.role==='uploader' && assigned(uid))
 // 사업부/법인 페이지 접근: 그 조직(또는 하위) 담당자이거나 관리자
 const canOpenUnit  = uid => canUp(uid) || kidsOf(uid).some(k=>canUp(k.id))
-const ROLE_NAME    = {admin:'총 관리자',full_viewer:'피보고자',uploader:'자료 제출',viewer:'열람'}
+const ROLE_NAME    = {admin:'총 관리자',full_viewer:'전체 열람',uploader:'지정 제출',viewer:'지정 열람'}
+const ROLE_ORDER   = ['admin','full_viewer','viewer','uploader']
 const roleDesc     = (role,unit_ids=[]) => {
   const names=(unit_ids||[]).map(id=>getUnit(id)?.name||id).join(', ')
   if(role==='admin') return '기획조정팀 담당자 — 총 관리자 권한 (대시보드 전체 수정·관리)'
-  if(role==='full_viewer') return '피보고자 — 전 사업부/법인 자료 열람 가능'
-  if(role==='uploader') return `자료 제출 권한 — ${names||'(사업부 미지정)'} 자료 제출·열람`
-  return `열람 권한 — ${names||'(사업부 미지정)'} 자료 열람`
+  if(role==='full_viewer') return '전체 열람 — 전 사업부/법인 자료 열람 가능'
+  if(role==='uploader') return `지정 제출 — ${names||'(사업부/법인 미지정)'} 자료 제출·열람`
+  return `지정 열람 — ${names||'(사업부/법인 미지정)'} 자료 열람`
 }
 const TYPE_LABEL   = t => t==='monthly'?'월간보고':t==='weekly'?'심층보고':'기타'
 const wl           = s => (s||'').replace(/월(\d)/,'월 $1')
@@ -1608,38 +1631,68 @@ function renderAdmin(){
   }
 
   if(S.adminTab==='users'){
-    const hdr=el('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'12px',gap:'10px',flexWrap:'wrap'}})
+    S.grantQ=S.grantQ||''
+    const hdr=el('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'10px',gap:'10px',flexWrap:'wrap'}})
     hdr.append(el('div',{cls:'txs tmu'},'수신인 목록에서 사람을 골라 권한을 부여합니다. 계정이 만들어지면 부여된 권한이 자동 적용됩니다.'))
-    const addBtn=el('button',{cls:'btn btn-p btn-sm'},'+ 권한 부여 (수신인에서 선택)')
-    addBtn.onclick=()=>openModal({type:'grantRole',data:{email:'',name:'',role:'full_viewer',unit_ids:[],recipient_id:null}})
+    const addBtn=el('button',{cls:'btn btn-p btn-sm'},'+ 권한 부여')
+    addBtn.onclick=()=>openModal({type:'grantRole',data:{picked:[],role:'full_viewer',unit_ids:[],q:'',grp:''}})
     hdr.append(addBtn); frag.append(hdr)
+
     // grants ∪ profiles (이메일 기준 병합)
     const byEmail={}
     for(const g of S.grants) byEmail[(g.email||'').toLowerCase()]={...g,_grant:true}
     for(const u of S.users){const k=(u.email||'').toLowerCase(); byEmail[k]={...(byEmail[k]||{}),...u,_grant:!!byEmail[k],_account:true,role:byEmail[k]?.role||u.role,unit_ids:byEmail[k]?.unit_ids||u.unit_ids}}
-    const rows=Object.values(byEmail).sort((a,b)=>{const o={admin:0,full_viewer:1,uploader:2,viewer:3};return (o[a.role]??9)-(o[b.role]??9)||(a.name||'').localeCompare(b.name||'')})
-    if(!rows.length) frag.append(el('div',{cls:'empty'},'부여된 권한이 없습니다'))
-    const list=el('div',{style:{display:'flex',flexDirection:'column',gap:'7px'}})
-    for(const r of rows){
-      const rc=S.recipients.find(x=>(x.email||'').toLowerCase()===(r.email||'').toLowerCase())||(r.recipient_id?S.recipients.find(x=>x.id===r.recipient_id):null)
-      const row=el('div',{cls:'row',style:{alignItems:'flex-start'}})
-      const col=el('div',{style:{flex:'1',minWidth:'0'}})
-      const line1=el('div',{cls:'flex',style:{gap:'8px',flexWrap:'wrap'}})
-      line1.append(el('span',{cls:'fw7',style:{fontSize:'13px'}},r.name||rc?.name||'(이름없음)'),el('span',{cls:'rolepill '+r.role},ROLE_NAME[r.role]||r.role))
-      line1.append(el('span',{cls:r._account?'acct on':'acct'},r._account?'계정 활성':'계정 대기'))
-      col.append(line1)
-      if(rc) col.append(el('div',{cls:'txs tmu',style:{marginTop:'3px'}},`${rc.grp} · ${rc.org}${rc.l2&&rc.l2!==rc.org?' '+rc.l2:''}${rc.title?' · '+rc.title:''} · ${rc.email||''}`))
-      else col.append(el('div',{cls:'txs tmu',style:{marginTop:'3px'}},`${r.email||''} · 수신인 목록에 없음`))
-      col.append(el('div',{cls:'ts',style:{marginTop:'5px',color:'#374151'}},roleDesc(r.role,r.unit_ids)))
-      row.append(el('div',{cls:'avatar'},ini(r.name||rc?.name||'?')),col)
-      const editBtn=el('button',{cls:'btn btn-sm'},'수정');editBtn.onclick=()=>openModal({type:'grantRole',data:{email:r.email,name:r.name||rc?.name||'',role:r.role,unit_ids:[...(r.unit_ids||[])],recipient_id:rc?.id||null,_profileId:r._account?r.id:null,_edit:true}})
-      const delBtn=el('button',{cls:'btn btn-d btn-sm'},'해제');delBtn.onclick=async()=>{if(!confirm(`${r.name||r.email} 권한을 해제할까요? (계정이 있으면 열람 권한 없음으로 변경)`))return
-        try{await sb.from('grants').delete().eq('email',r.email); if(r._account){await sb.from('profiles').update({role:'viewer',unit_ids:[]}).eq('id',r.id)}
-          S.grants=S.grants.filter(g=>g.email!==r.email); S.users=S.users.map(u=>u.id===r.id?{...u,role:'viewer',unit_ids:[]}:u); toast('해제됨'); refreshMain()}catch(e){toast(e.message,'err')}}
-      row.append(editBtn,delBtn); list.append(row)
+    const all=Object.values(byEmail)
+    const rcOf=r=>S.recipients.find(x=>(x.email||'').toLowerCase()===(r.email||'').toLowerCase())||(r.recipient_id?S.recipients.find(x=>x.id===r.recipient_id):null)
+
+    const qIn=el('input',{cls:'input',placeholder:'이름·메일·소속 검색',value:S.grantQ,style:{width:'260px',height:'32px',fontSize:'12px'}})
+    qIn.oninput=()=>{S.grantQ=qIn.value;renderGroups()}
+    frag.append(el('div',{style:{marginBottom:'12px'}},qIn))
+    const holder=el('div',{}); frag.append(holder)
+
+    S.grantRole=S.grantRole||'admin'
+    const tabs=el('div',{cls:'rolechips'}); frag.insertBefore(tabs,holder)
+    function renderGroups(){
+      const q=(S.grantQ||'').trim().toLowerCase()
+      const match=r=>{const rc=rcOf(r);return !q||[r.name,r.email,rc?.name,rc?.org,rc?.l2,rc?.grp,rc?.title].some(v=>(v||'').toLowerCase().includes(q))}
+      const rows=all.filter(match)
+      // 탭
+      tabs.replaceChildren()
+      for(const role of ROLE_ORDER){
+        const n=rows.filter(r=>r.role===role).length
+        const t=el('span',{cls:'chip'+(S.grantRole===role?' on':'')},ROLE_NAME[role])
+        t.append(el('span',{cls:'n'},n))
+        t.onclick=()=>{S.grantRole=role;renderGroups()}
+        tabs.append(t)
+      }
+      const grp=rows.filter(r=>r.role===S.grantRole).sort((a2,b2)=>(a2.name||'').localeCompare(b2.name||''))
+      holder.replaceChildren()
+      holder.append(el('div',{cls:'txs tmu',style:{margin:'2px 0 10px'}},roleDesc(S.grantRole,[])))
+      if(!grp.length){holder.append(el('div',{cls:'empty'},q?'검색 결과가 없습니다':'해당 권한을 가진 사용자가 없습니다'));return}
+      for(const r of grp){
+        const rc=rcOf(r)
+        const row=el('div',{cls:'urow'})
+        const col=el('div',{style:{flex:'1',minWidth:'0'}})
+        const l1=el('div',{cls:'flex',style:{gap:'7px',flexWrap:'wrap'}})
+        l1.append(el('span',{cls:'fw7',style:{fontSize:'13px'}},r.name||rc?.name||'(이름없음)'),
+                  el('span',{cls:r._account?'acct on':'acct'},r._account?'계정 활성':'계정 대기'))
+        col.append(l1)
+        col.append(el('div',{cls:'txs tmu',style:{marginTop:'2px'}},
+          rc?`${rc.grp} · ${rc.org}${rc.l2&&rc.l2!==rc.org?' '+rc.l2:''}${rc.title?' · '+rc.title:''} · ${r.email||''}`:`${r.email||''} · 수신인 목록에 없음`))
+        if((S.grantRole==='uploader'||S.grantRole==='viewer')&&(r.unit_ids||[]).length)
+          col.append(el('div',{cls:'txs',style:{marginTop:'3px',color:'#4b5563'}},'담당 — '+(r.unit_ids||[]).map(id=>getUnit(id)?.name||id).join(', ')))
+        row.append(col)
+        const editBtn=el('button',{cls:'btn btn-sm'},'수정')
+        editBtn.onclick=()=>openModal({type:'grantRole',data:{picked:[{email:r.email,name:r.name||rc?.name||'',recipient_id:rc?.id||null}],role:r.role,unit_ids:[...(r.unit_ids||[])],_edit:true,_profileId:r._account?r.id:null,q:'',grp:''}})
+        const delBtn=el('button',{cls:'btn btn-d btn-sm'},'해제')
+        delBtn.onclick=async()=>{if(!confirm(`${r.name||r.email} 권한을 해제할까요?`))return
+          try{await sb.from('grants').delete().eq('email',r.email); if(r._account){await sb.from('profiles').update({role:'viewer',unit_ids:[]}).eq('id',r.id)}
+            S.grants=S.grants.filter(g=>g.email!==r.email); S.users=S.users.map(u=>u.id===r.id?{...u,role:'viewer',unit_ids:[]}:u); toast('해제됨'); refreshMain()}catch(e){toast(e.message,'err')}}
+        row.append(editBtn,delBtn); holder.append(row)
+      }
     }
-    frag.append(list)
-    frag.append(el('div',{cls:'txs tmu',style:{marginTop:'14px',lineHeight:'1.6'}},'계정 생성: 현재는 Supabase 콘솔(Authentication → Users → Invite)에서 같은 이메일로 초대하면 됩니다. 초대 메일 자동 발송은 Edge Function 연결 후 이 화면에서 바로 됩니다.'))
+    renderGroups()
+    frag.append(el('div',{cls:'txs tmu',style:{marginTop:'14px',lineHeight:'1.6'}},'계정 생성: Supabase 콘솔(Authentication → Users)에서 같은 이메일로 만들면 됩니다. 권한을 먼저 부여해 두면 계정 생성 시 자동 적용됩니다.'))
   }
   return frag
 }
@@ -1648,7 +1701,7 @@ function renderAdmin(){
 function openModal(config){
   const overlay=el('div',{cls:'overlay'})
   overlay.onclick=e=>{if(e.target===overlay)overlay.remove()}
-  const modal=el('div',{cls:'modal'+(config.type==='uploadDoc'?' wide':'')})
+  const modal=el('div',{cls:'modal'+(['uploadDoc','grantRole'].includes(config.type)?' wide':'')})
   const TITLES={addUnit:'사업부/법인 추가',editUnit:'사업부/법인 수정',inviteUser:'사용자 초대',editProfile:'사용자 수정',addContact:'담당자 추가',editContact:'담당자 수정',addEvent:'일정 추가',addRecipient:'수신인 추가',editRecipient:'수신인 수정',uploadDoc:'자료 제출',grantRole:'권한 부여',addSession:'보고 세션 일괄 추가',myAccount:'내 계정',docHistory:'제출 이력'}
   const COLORS=['#2563eb','#059669','#dc2626','#d97706','#7c3aed','#0891b2','#be185d','#374151','#b45309','#0f766e','#c2410c','#9333ea']
   const closeBtn=el('button',{cls:'',style:{background:'transparent',border:'none',fontSize:'22px',color:'#9ca3af',cursor:'pointer'}},'×')
@@ -1716,32 +1769,98 @@ function openModal(config){
         el('div',{style:{fontSize:'11.5px',lineHeight:'1.7'}},order.map((id,i)=>`${i+1}. ${getUnit(id)?.name}`).join('  ·  '))))
     }
     if(t==='grantRole'){
-      // 수신인 선택
-      const rsel=el('div',{cls:'fg'}), rs=el('select',{cls:'input'})
-      rs.append(el('option',{value:''},data._edit?'(수신인 변경 안 함)':'-- 수신인 목록에서 선택 --'))
-      const cands=[...S.recipients].filter(r=>r.status!=='excluded'&&r.email).sort((a,b)=>GRP_ORDER.indexOf(a.grp)-GRP_ORDER.indexOf(b.grp)||(a.org||'').localeCompare(b.org||''))
-      for(const r of cands){const op=el('option',{value:r.id},`${r.name} · ${r.grp} · ${r.org}${r.l2&&r.l2!==r.org?' '+r.l2:''}${r.title?' ('+r.title+')':''}`);if(data.recipient_id===r.id)op.selected=true;rs.append(op)}
-      rs.onchange=()=>{const r=S.recipients.find(x=>x.id===rs.value);if(r){data.recipient_id=r.id;data.email=r.email;data.name=r.name;rebuildBody()}}
-      rsel.append(el('label',{cls:'lbl'},'수신인 *'),el('div',{style:{marginTop:'4px'}},rs)); body.append(rsel)
-      if(data.email) body.append(el('div',{cls:'doc-prev'},el('div',{cls:'k'},'부여 대상'),el('div',{cls:'fw7'},`${data.name} <${data.email}>`)))
-      // 역할
-      const rlsel=el('div',{cls:'fg'}), rl=el('select',{cls:'input'})
-      for(const [v,t2] of [['full_viewer','피보고자 — 전 사업부/법인 열람'],['admin','총 관리자 — 기획조정팀 담당자'],['uploader','자료 제출 — 지정 사업부 제출·열람'],['viewer','열람 — 지정 사업부만 열람']]){const op=el('option',{value:v},t2);if(data.role===v)op.selected=true;rl.append(op)}
+      const isEdit=!!data._edit
+      data.picked=data.picked||[]
+      body.append(el('div',{cls:'txs tmu',style:{marginBottom:'10px'}},isEdit?'권한을 변경합니다.':'여러 명을 한 번에 선택해 같은 권한을 부여할 수 있습니다.'))
+
+      // 선택 대상
+      const pickedBox=el('div',{cls:'picked'})
+      const confirmBox=el('div',{cls:'doc-prev'})
+      const paintPicked=()=>{
+        confirmBox.replaceChildren(el('div',{cls:'k'},`확인 — ${data.picked.length}명`),
+          el('div',{},`${data.picked.length?data.picked.map(p2=>p2.name||p2.email).join(', '):'(대상 없음)'} — ${roleDesc(data.role,data.unit_ids)}`))
+        pickedBox.replaceChildren()
+        if(!data.picked.length){pickedBox.append(el('span',{cls:'txs tmu'},'선택된 대상이 없습니다'));return}
+        data.picked.forEach((pk,i)=>{
+          const c=el('span',{cls:'pchip2'},pk.name||pk.email)
+          if(!isEdit){const x=el('span',{cls:'x'},'✕');x.onclick=()=>{data.picked.splice(i,1);paintPicked();paintList()};c.append(x)}
+          pickedBox.append(c)
+        })
+      }
+      body.append(el('label',{cls:'lbl'},`대상 ${isEdit?'':'(여러 명 선택 가능)'}`),pickedBox)
+
+      let listBox=null
+      if(!isEdit){
+        // 검색 + 구분 칩
+        const sIn=el('input',{cls:'input',placeholder:'이름·메일·소속 검색',value:data.q||''})
+        const chips=el('div',{cls:'gchips'})
+        const grps=['전체',...GRP_ORDER.filter(g=>S.recipients.some(r=>r.grp===g))]
+        const paintChips=()=>{chips.replaceChildren();for(const g of grps){const c=el('span',{cls:'chip'+((data.grp||'전체')===g?' on':'')},g);c.onclick=()=>{data.grp=g;paintChips();paintList()};chips.append(c)}}
+        paintChips()
+        sIn.oninput=()=>{data.q=sIn.value;paintList()}
+        const allBtn=el('button',{cls:'btn btn-sm'},'전체 선택')
+        const clrBtn=el('button',{cls:'btn btn-sm'},'선택 해제')
+        allBtn.onclick=()=>{for(const r of curRows()){if(!data.picked.some(p2=>p2.email===r.email))data.picked.push({email:r.email,name:r.name,recipient_id:r.id})};paintPicked();paintList()}
+        clrBtn.onclick=()=>{data.picked=[];paintPicked();paintList()}
+        const bar=el('div',{style:{display:'flex',gap:'6px',alignItems:'center',marginTop:'6px'}})
+        sIn.style.flex='1'
+        bar.append(sIn,allBtn,clrBtn)
+        body.append(bar,chips)
+        listBox=el('div',{cls:'picklist'}); body.append(listBox)
+        var curRows=()=>{
+          const q=(data.q||'').trim().toLowerCase(), g=data.grp||'전체'
+          return S.recipients.filter(r=>r.status!=='excluded'&&r.email)
+            .filter(r=>(g==='전체'||r.grp===g))
+            .filter(r=>!q||[r.name,r.email,r.org,r.l2,r.title].some(v=>(v||'').toLowerCase().includes(q)))
+            .slice(0,300)
+        }
+        var paintList=()=>{
+          const has=new Set(data.picked.map(p2=>p2.email))
+          const rows=curRows()
+          allBtn.textContent=`전체 선택 (${rows.length})`
+          listBox.replaceChildren()
+          if(!rows.length){listBox.append(el('div',{cls:'txs tmu',style:{padding:'12px'}},'검색 결과가 없습니다'));return}
+          for(const r of rows){
+            const on=has.has(r.email)
+            const it=el('div',{cls:'pitem'+(on?' on':'')})
+            it.append(el('div',{style:{flex:'1',minWidth:'0'}},
+              el('div',{cls:'fw7',style:{fontSize:'12.5px'}},`${r.name} ${r.title?'· '+r.title:''}`),
+              el('div',{cls:'txs tmu'},`${r.grp} · ${r.org}${r.l2&&r.l2!==r.org?' '+r.l2:''} · ${r.email}`)))
+            it.append(el('span',{cls:'mk'},on?'✓':'+'))
+            it.onclick=()=>{
+              const i=data.picked.findIndex(p2=>p2.email===r.email)
+              if(i>=0) data.picked.splice(i,1); else data.picked.push({email:r.email,name:r.name,recipient_id:r.id})
+              paintPicked(); paintList()
+            }
+            listBox.append(it)
+          }
+        }
+        paintList()
+      }
+      paintPicked()
+
+      // 권한
+      const rlsel=el('div',{cls:'fg',style:{marginTop:'12px'}}), rl=el('select',{cls:'input'})
+      for(const [v,t2] of [['full_viewer','전체 열람 — 전 사업부/법인 자료 열람'],['admin','총 관리자 — 기획조정팀 담당자'],['uploader','지정 제출 — 지정 사업부/법인 제출·열람'],['viewer','지정 열람 — 지정 사업부/법인만 열람']]){
+        const op=el('option',{value:v},t2); if(data.role===v)op.selected=true; rl.append(op)
+      }
       rl.onchange=()=>{data.role=rl.value;rebuildBody()}
       rlsel.append(el('label',{cls:'lbl'},'권한 *'),el('div',{style:{marginTop:'4px'}},rl)); body.append(rlsel)
+
       if(data.role==='uploader'||data.role==='viewer'){
-        const ugrp=el('div',{cls:'fg'}); ugrp.append(el('label',{cls:'lbl'},'대상 사업부 (상위를 고르면 하위 조직 포함)'))
-        const checks=el('div',{style:{display:'flex',flexWrap:'wrap',gap:'8px',marginTop:'6px'}})
+        const ugrp=el('div',{cls:'fg'}); ugrp.append(el('label',{cls:'lbl'},'대상 사업부/법인 (상위를 고르면 하위 포함)'))
+        const checks=el('div',{cls:'uchecks'})
         if(!Array.isArray(data.unit_ids))data.unit_ids=[]
         for(const unit of S.units){
-          const lbl2=el('label',{style:{display:'flex',alignItems:'center',gap:'5px',fontSize:'12px',cursor:'pointer',paddingLeft:unit.parent_id?'14px':'0',color:unit.parent_id?'#6b7280':'#1f2937'}})
-          const cb=el('input',{type:'checkbox',style:{width:'auto'}});cb.checked=data.unit_ids.includes(unit.id)
+          const lbl2=el('label',{cls:'ucheck'+(unit.parent_id?' kid':'')})
+          const cb=el('input',{type:'checkbox',style:{width:'auto'}}); cb.checked=data.unit_ids.includes(unit.id)
           cb.onchange=()=>{if(cb.checked)data.unit_ids.push(unit.id);else data.unit_ids=data.unit_ids.filter(x=>x!==unit.id)}
           lbl2.append(cb,(unit.parent_id?'└ ':'')+unit.name); checks.append(lbl2)
         }
         ugrp.append(checks); body.append(ugrp)
       }
-      body.append(el('div',{cls:'doc-prev'},el('div',{cls:'k'},'확인'),el('div',{},`${data.name||'(대상)'} — ${roleDesc(data.role,data.unit_ids)}`)))
+      paintPicked()
+      body.append(confirmBox)
     }
     if(t==='inviteUser'){
       body.append(inp('email','이메일 *','email','user@company.com'),inp('name','이름 *'))
@@ -1898,13 +2017,19 @@ function openModal(config){
           const {error}=await sb.auth.updateUser({password:data.p1}); if(error)throw error
           toast('비밀번호가 변경되었습니다')
         }else if(t==='grantRole'){
-          if(!data.email){toast('수신인을 선택하세요','err');return}
-          const email=data.email.trim().toLowerCase(), unit_ids=(data.role==='uploader'||data.role==='viewer')?data.unit_ids:[]
-          const rec={email,name:data.name,role:data.role,unit_ids,recipient_id:data.recipient_id||null,granted_by_name:S.profile?.name||'',granted_at:new Date().toISOString()}
-          const{error}=await sb.from('grants').upsert(rec,{onConflict:'email'}); if(error)throw error
-          S.grants=[...S.grants.filter(g=>g.email!==email),rec]
-          const prof=S.users.find(u=>(u.email||'').toLowerCase()===email)
-          if(prof){const{error:e2}=await sb.from('profiles').update({role:data.role,unit_ids,name:prof.name||data.name}).eq('id',prof.id);if(e2)throw e2;S.users=S.users.map(u=>u.id===prof.id?{...u,role:data.role,unit_ids}:u)}
+          if(!data.picked?.length){toast('대상을 선택하세요','err');return}
+          const unit_ids=(data.role==='uploader'||data.role==='viewer')?data.unit_ids:[]
+          if((data.role==='uploader'||data.role==='viewer')&&!unit_ids.length){toast('대상 사업부/법인을 선택하세요','err');return}
+          saveBtn.disabled=true; saveBtn.textContent='저장 중...'
+          for(const pk of data.picked){
+            const email=(pk.email||'').trim().toLowerCase()
+            const rec={email,name:pk.name,role:data.role,unit_ids,recipient_id:pk.recipient_id||null,granted_by_name:S.profile?.name||'',granted_at:new Date().toISOString()}
+            const{error}=await sb.from('grants').upsert(rec,{onConflict:'email'}); if(error)throw error
+            S.grants=[...S.grants.filter(g=>g.email!==email),rec]
+            const prof=S.users.find(u=>(u.email||'').toLowerCase()===email)
+            if(prof){const{error:e2}=await sb.from('profiles').update({role:data.role,unit_ids,name:prof.name||pk.name}).eq('id',prof.id);if(e2)throw e2;S.users=S.users.map(u=>u.id===prof.id?{...u,role:data.role,unit_ids}:u)}
+          }
+          toast(`${data.picked.length}명 권한 부여 완료`)
         }else if(t==='inviteUser'){
           if(!data.email?.trim()||!data.name?.trim()){toast('이메일과 이름을 입력하세요','err');return}
           const{data:inv,error}=await sb.auth.admin.inviteUserByEmail(data.email,{data:{name:data.name,role:data.role,unit_ids:data.unit_ids}})
