@@ -86,6 +86,8 @@ button,input,select,textarea{font-family:inherit;font-size:13px}
 .chip{display:inline-flex;align-items:center;height:26px;padding:0 10px;border-radius:20px;font-size:11px;border:1px solid #e5e7eb;background:#fff;color:#374151;cursor:pointer;white-space:nowrap;user-select:none}
 .chip:hover{background:#f3f4f6}.chip.on{background:#1f2937;color:#fff;border-color:#1f2937}
 .chip.clr{border-style:dashed;color:#6b7280}
+.chip.pchip{font-weight:800}
+.chip.pchip:not(.on){background:#f8fafc;border-color:#cbd5e1}
 .chip .n{margin-left:5px;font-size:10px;opacity:.7}
 .stsel{height:24px;font-size:10.5px;padding:0 6px;border-radius:6px;border:1px solid #e5e7eb;background:#fff;vertical-align:middle}
 .stsel.ok{color:#059669}.stsel.check{color:#d97706;background:#fffbeb;border-color:#fcd34d}.stsel.excluded{color:#6b7280;background:#f3f4f6}
@@ -193,6 +195,23 @@ button,input,select,textarea{font-family:inherit;font-size:13px}
 .allbox.written{background:#f5f3ff;border-color:#c4b5fd;color:#6d28d9}
 .allbox.skipped{background:#f3f4f6;border-color:#cbd5e1;color:#475569}
 .sesrow .st.sk{background:#f3f4f6;color:#6b7280}
+.sesrow .st.att{background:#eef2ff;color:#4338ca}
+.sesrow .st.done{background:#1d4ed8;color:#fff}
+.sesrow .st.part{background:#fffbeb;color:#d97706}
+.sesrow .st.clickable{cursor:pointer;border:1px solid transparent;transition:filter .1s,border-color .1s}
+.sesrow .st.clickable:hover{filter:brightness(.95);border-color:currentColor}
+.sesrow .st.clickable:active{transform:translateY(1px)}
+.sesrow .un .clk{cursor:pointer;text-decoration:underline;text-decoration-color:#d1d5db;text-underline-offset:3px}
+.sesrow .un .clk:hover{color:#1d4ed8;text-decoration-color:#1d4ed8}
+.hist-sec{font-size:12px;font-weight:800;color:#374151;margin:14px 0 6px}
+.hist-row{display:flex;align-items:center;gap:8px;padding:7px 0;border-top:1px solid #f3f4f6;font-size:12px}
+.hist-row .vb{font-size:10px;font-weight:800;padding:1px 7px;border-radius:10px;background:#f3f4f6;color:#6b7280;flex-shrink:0}
+.hist-row .vb.cur{background:#dcfce7;color:#16a34a}
+.hist-row .nm2{flex:1;min-width:0}
+.hist-row .nm2 .ell{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:600}
+.hist-row .meta2{font-size:10.5px;color:#9ca3af;margin-top:2px}
+.hist-row .meta{font-size:10.5px;color:#9ca3af;white-space:nowrap;flex-shrink:0}
+.hist-row .dl{font-size:11px;color:#2563eb;cursor:pointer;text-decoration:underline;flex-shrink:0}
 .pill.wr{background:#7c3aed}
 .sesrow .tm.wr{color:#7c3aed;font-family:inherit;font-weight:700;font-size:10px}
 .evl .evdot{width:8px;height:8px;flex-shrink:0}
@@ -214,16 +233,23 @@ button,input,select,textarea{font-family:inherit;font-size:13px}
 .pill{display:inline-block;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:800;background:#ea580c;color:#fff}
 .pill.gray{background:#e5e7eb;color:#4b5563}
 .sesday{padding:10px 16px 4px;font-size:11px;font-weight:800;color:#6b7280;letter-spacing:.02em}
-.sesrow{display:flex;align-items:center;gap:9px;padding:8px 16px;border-top:1px solid #f3f4f6}
-.sesrow .un{font-size:12.5px;font-weight:700;color:#1f2937;flex:1;min-width:0}
+.sesrow{display:flex;align-items:center;gap:6px;padding:8px 14px;border-top:1px solid #f3f4f6}
+.sesrow .un{font-size:12.5px;font-weight:700;color:#1f2937;flex:0 1 auto;min-width:0}
+.sesrow .sp{flex:1 1 auto;min-width:6px;align-self:stretch}
 .sesrow .sub{font-size:10.5px;color:#6b7280;font-weight:500;margin-left:6px}
-.sesrow .tm{font-size:10.5px;color:#4b5563;width:46px;flex-shrink:0;white-space:nowrap;font-variant-numeric:tabular-nums}
-.sesrow .st{font-size:10.5px;font-weight:700;padding:2px 8px;border-radius:10px;flex-shrink:0}
+.sesrow .tm{font-size:10.5px;color:#4b5563;width:40px;flex-shrink:0;white-space:nowrap;font-variant-numeric:tabular-nums}
+.sesrow .st{font-size:10.5px;font-weight:700;padding:2px 5px;border-radius:10px;flex-shrink:0;text-align:center}
+.sesrow .slot-rep{width:58px;display:flex;justify-content:flex-end;flex-shrink:0}
+.sesrow .slot-att{width:52px;display:flex;justify-content:flex-end;flex-shrink:0}
+.sesrow .slot-btn{width:54px;display:flex;justify-content:flex-end;flex-shrink:0}
+.sesrow .slot-rep .st,.sesrow .slot-att .st{width:100%}
 .sesrow .st.ok{background:#ecfdf5;color:#059669}.sesrow .st.no{background:#fef2f2;color:#dc2626}.sesrow .st.na{background:#f3f4f6;color:#9ca3af}
-.sesrow .btn{padding:2px 8px;font-size:10px;flex-shrink:0}
+.sesrow .btn{padding:2px 6px;font-size:10px;flex-shrink:0;white-space:nowrap}
 .sesfoot{padding:10px 16px;background:#f9fafb;border-top:1px solid #f3f4f6;font-size:11px;color:#6b7280;display:flex;justify-content:space-between;align-items:center}
 .sesdl{padding:10px 16px;border-top:1px solid #f3f4f6;display:flex;align-items:center;gap:10px}
-.sesdl .btn{flex:1;justify-content:center}.sesdl .btn:disabled{opacity:.45;cursor:not-allowed}
+.sesdl{flex-wrap:wrap}
+.sesdl .btn{flex:1 1 0;justify-content:center;min-width:120px}
+.sesdl .btn:disabled{opacity:.45;cursor:not-allowed}
 .sesnext{padding:10px 16px;border-top:1px solid #f3f4f6;font-size:11px;color:#6b7280;display:flex;align-items:center;gap:8px;cursor:pointer}.sesnext:hover{background:#f9fafb}
 .hol-row{display:flex;align-items:center;gap:6px;font-size:11px;padding:4px 8px;background:#fef2f2;border:1px solid #fecaca;border-radius:6px;margin-bottom:5px;color:#b91c1c}
 .hol-row.fx{background:#f9fafb;border-color:#e5e7eb;color:#6b7280}
@@ -243,6 +269,21 @@ button,input,select,textarea{font-family:inherit;font-size:13px}
 .login-ico{width:56px;height:56px;background:#dbeafe;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:26px;margin:0 auto 18px}
 /* overlay */
 .overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);display:flex;align-items:flex-start;justify-content:center;padding-top:60px;z-index:2000}
+.modal.wide{width:660px}
+.up2{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:10px}
+.unit2{display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:start}
+.unit2 .ucol{min-width:0}
+.unit2 .uhead{font-size:12.5px;font-weight:800;color:#374151;margin:2px 0 8px}
+.unit2 .ulist{display:flex;flex-direction:column;gap:7px;margin-top:10px}
+@media (max-width:900px){.unit2{grid-template-columns:1fr}}
+.up2 .col{min-width:0}
+.up2 .ch{font-size:12px;font-weight:800;color:#374151;margin-bottom:6px}
+.up2 .sub{font-size:10.5px;color:#9ca3af;margin-top:6px;line-height:1.5}
+.attlist{margin-top:8px;display:flex;flex-direction:column;gap:5px}
+.attitem{display:flex;align-items:center;gap:6px;font-size:11px;background:#f8fafc;border:1px solid #e5e7eb;border-radius:7px;padding:5px 8px}
+.attitem .nm3{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.attitem .x{color:#dc2626;cursor:pointer;font-weight:800}
+@media (max-width:640px){.up2{grid-template-columns:1fr}}
 .modal{background:#fff;border-radius:12px;padding:22px;width:380px;max-width:calc(100vw - 24px);max-height:85vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.15)}
 /* ── 반응형: 좁은 화면(아이패드 세로·폰) ── */
 .topbar{display:none}
@@ -345,6 +386,7 @@ const fmtB = b => b<1024?b+'B':b<1048576?(b/1024).toFixed(1)+'KB':(b/1048576).to
 const DOWK = ['일','월','화','수','목','금','토']
 const dowOf = s => DOWK[new Date(String(s).slice(0,10)+'T00:00:00').getDay()]
 const fmtD  = s => { if(!s)return''; const[y,m,d]=String(s).slice(0,10).split('-'); return `${y}.${m}.${d} (${dowOf(s)})` }   // 2026.09.22 (화)
+const fmtDT = s => { if(!s)return''; const d=new Date(s); const p=n=>String(n).padStart(2,'0'); return `${fmtD(String(s).slice(0,10))} ${p(d.getHours())}:${p(d.getMinutes())}` }   // 2026.09.14 (월) 14:32
 const fmtMD = s => { if(!s)return''; const[y,m,d]=String(s).slice(0,10).split('-'); return `${+m}/${+d}(${dowOf(s)})` }        // 9/22(화)
 const fmtYM = (y,m) => `'${String(y).slice(2)}.${m+1}월`                                                                        // '26.9월
 const ds = (y,m,d) => `${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`
@@ -621,12 +663,22 @@ function clockBar(){
   clearInterval(window._clkT); window._clkT=setInterval(()=>{if(document.body.contains(wrap))paint();else clearInterval(window._clkT)},20000)
   return wrap
 }
-// 문서 다운로드: 서명 URL로 받아온 뒤 우리가 정한 파일명(doc.name)으로 저장
+// 현재 회의 순서 기준 파일명 — 일정이 바뀌면 번호를 다시 매긴다 (별첨은 원본 이름 유지)
+function currentDocName(doc){
+  if(!doc) return ''
+  if(isAttach(doc)) return doc.name
+  const ev=S.events.find(e=>e.id===doc.event_id); if(!ev) return doc.name
+  const ses=findSession(mondayOf(ev.date)); if(!ses||ses.mon!==mondayOf(ev.date)) return doc.name
+  const slot=sessionSlots(ses).find(s=>s.leaf.id===doc.unit_id); if(!slot) return doc.name
+  const leaf=getUnit(doc.unit_id)
+  return `${slot.num}. (${leaf?.name||doc.unit_id}) ${wl(ses.label)} ${TYPE_LABEL(ses.type)}_v${doc.version||1}.pdf`
+}
+// 문서 다운로드: 서명 URL로 받아온 뒤 현재 순서 기준 파일명으로 저장
 async function downloadDoc(doc){
   const url=await DB.getFileUrl(doc.file_path); if(!url){toast('URL 생성 실패','err');return}
   try{
     const blob=await (await fetch(url)).blob()
-    const a=el('a',{href:URL.createObjectURL(blob),download:doc.name}); document.body.append(a); a.click(); a.remove()
+    const a=el('a',{href:URL.createObjectURL(blob),download:currentDocName(doc)}); document.body.append(a); a.click(); a.remove()
     setTimeout(()=>URL.revokeObjectURL(a.href),10000)
   }catch(e){ window.open(url,'_blank') }
 }
@@ -640,22 +692,39 @@ function acceptDrop(elm,onFile,{hoverCls='dragover'}={}){
     if(!/\.pdf$/i.test(f.name)){toast('PDF 파일만 업로드할 수 있습니다','err');return} onFile(f)})
 }
 window.addEventListener('dragover',e=>e.preventDefault()); window.addEventListener('drop',e=>e.preventDefault())
-async function loadJsZip(){
-  if(window.JSZip)return window.JSZip
-  await new Promise((res,rej)=>{const s=document.createElement('script');s.src='https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js';s.onload=res;s.onerror=rej;document.head.append(s)})
-  return window.JSZip
-}
-// 세션 제출본 전체를 회의 순서대로 zip으로 내려받기
-async function downloadSessionZip(ses, docsBySlot){
-  const JSZip=await loadJsZip(); const zip=new JSZip(); let n=0
+// 회의 순서대로 [보고 자료 → 별첨…] 평탄화
+function sessionDocsInOrder(ses){
+  const out=[]
   for(const s of sessionSlots(ses)){
-    const doc=docsBySlot[s.leaf.id]; if(!doc)continue
-    const url=await DB.getFileUrl(doc.file_path); if(!url) throw new Error(`${doc.name} URL 생성 실패`)
-    zip.file(doc.name, await (await fetch(url)).arrayBuffer()); n++
+    const rep_=reportDocs(s.leaf.id,s.ev.id)[0]
+    if(rep_) out.push(rep_)
+    for(const a of attachDocs(s.leaf.id,s.ev.id)) out.push(a)
   }
-  if(!n) throw new Error('내려받을 자료가 없습니다')
-  const blob=await zip.generateAsync({type:'blob'})
-  const a=el('a',{href:URL.createObjectURL(blob),download:`${wl(ses.label)} ${TYPE_LABEL(ses.type)}_전체.zip`}); document.body.append(a); a.click(); a.remove()
+  return out
+}
+// 세션 제출본을 회의 순서대로 PDF 파일 하나씩 저장 (zip 없이)
+async function downloadSessionPdfs(ses, _unused, onProgress){
+  const docs=sessionDocsInOrder(ses)
+  if(!docs.length) throw new Error('내려받을 자료가 없습니다')
+  let n=0
+  for(const doc of docs){
+    await downloadDoc(doc); n++
+    if(onProgress) onProgress(n,docs.length)
+    await new Promise(r=>setTimeout(r,450))   // 브라우저가 연속 저장을 막지 않도록 간격
+  }
+  return n
+}
+// 같은 순서로 새 탭에서 미리보기
+async function previewSessionPdfs(ses, onProgress){
+  const docs=sessionDocsInOrder(ses)
+  if(!docs.length) throw new Error('미리볼 자료가 없습니다')
+  let n=0
+  for(const d of docs){
+    const url=await DB.getFileUrl(d.file_path)
+    if(url) window.open(url,'_blank')
+    n++; if(onProgress) onProgress(n,docs.length)
+    await new Promise(r=>setTimeout(r,350))
+  }
   return n
 }
 // 회의 진행 순서 기준 슬롯 (상위 1..N, 비취합 하위는 "N-k")
@@ -694,7 +763,17 @@ async function mergePdfs(docs){
   }
   return new Blob([await out.save()],{type:'application/pdf'})
 }
-const latestDoc=(uid,eventId)=>S.docs.filter(d=>d.unit_id===uid&&d.event_id===eventId).sort((a,b)=>(b.version||0)-(a.version||0))[0]||null
+// 본 보고 자료 / 별첨 자료 구분
+const isAttach=d=>d.kind==='attachment'
+const reportDocs=(uid,eventId)=>S.docs.filter(d=>d.unit_id===uid&&d.event_id===eventId&&!isAttach(d)&&!isExpired(d)).sort((a,b)=>(b.version||0)-(a.version||0)||String(b.uploaded_at).localeCompare(String(a.uploaded_at)))
+// 취합 상위(운영)는 하위 조직 별첨까지 함께 본다
+const attachAll=(uid,eventId)=>{
+  const u=getUnit(uid), own=attachDocs(uid,eventId)
+  if(!u?.merge_kids) return own
+  return [...own, ...kidsOf(uid).flatMap(k=>attachDocs(k.id,eventId))]
+}
+const attachDocs=(uid,eventId)=>S.docs.filter(d=>d.unit_id===uid&&d.event_id===eventId&&isAttach(d)&&!isExpired(d)).sort((a,b)=>String(a.uploaded_at).localeCompare(String(b.uploaded_at)))
+const latestDoc=(uid,eventId)=>reportDocs(uid,eventId)[0]||null
 // 하위 조직 제출 후: 상위가 merge_kids면 하위 전부 제출 시 상위 명의 통합본 자동 생성
 async function afterChildUpload(unitId,eventId,reportType){
   const u=getUnit(unitId), parent=u?.parent_id?getUnit(u.parent_id):null
@@ -779,16 +858,18 @@ const DB = {
       S.users = data||[]; S.grants = g.data||[]
     }
   },
-  async uploadFile(file, unitId, reportType, eventId) {
+  async uploadFile(file, unitId, reportType, eventId, kind='report') {
     const ext  = file.name.split('.').pop().toLowerCase()
     if(ext!=='pdf') throw new Error('PDF 파일만 업로드할 수 있습니다. 문서를 PDF로 내보낸 뒤 올려주세요.')
-    const {name, version} = autoDocName(unitId, eventId, reportType)
+    const {name, version} = kind==='attachment'
+      ? {name:file.name, version:attachDocs(unitId,eventId).length+1}      // 별첨: 원본 파일명 그대로
+      : autoDocName(unitId, eventId, reportType)
     const path = `${unitId}/${Date.now()}_${Math.random().toString(36).slice(2,6)}.pdf`
     const {error:ue} = await sb.storage.from('documents').upload(path, file, {contentType:'application/pdf'})
     if(ue) throw new Error('파일 업로드 실패: ' + ue.message)
     const {data,error:de} = await sb.from('documents').insert({
       unit_id: unitId, event_id: eventId||null, report_type: reportType,
-      name, orig_name: file.name, version, file_type: 'pdf', file_path: path,
+      name, orig_name: file.name, version, kind, file_type: 'pdf', file_path: path,
       size: file.size, uploaded_by: S.user.id, uploaded_by_name: S.profile?.name||'',
     }).select().single()
     if(de) throw new Error('메타데이터 저장 실패: ' + de.message)
@@ -1035,20 +1116,31 @@ function renderDashboard() {
     }
     let done=0, tot=0; const docsBySlot={}
     const dow=['일','월','화','수','목','금','토']
-    const statusParts=(leaf,ev,{merged=false}={})=>{   // 제출 상태 + 버튼
-      if(ev.mode==='skipped'){const p=[el('span',{cls:'st sk'},'생략')];return {parts:p,submitted:null}}
-      const docs=docFor(leaf.id).sort((a,b)=>(b.version||0)-(a.version||0)||String(b.uploaded_at).localeCompare(String(a.uploaded_at)))
-      if(docs.length) docsBySlot[leaf.id]=docs[0]
-      const parts=[]
-      if(canUp(leaf.id)&&!merged) parts._drop=f=>openModal({type:'uploadDoc',data:{unit_id:leaf.id,event_id:ev.id,report_type:ses.type,file:f}})
-      if(docs.length){
-        parts.push(el('span',{cls:'st ok'},`제출 v${docs[0].version||1}`))
-        const dl=el('span',{cls:'dl',title:docs[0].name},'다운로드'); dl.onclick=e=>{e.stopPropagation();downloadDoc(docs[0])}; parts.push(dl)
-        if(!merged&&canUp(leaf.id)){const rb=el('button',{cls:'btn btn-sm'},'재제출');rb.onclick=()=>openModal({type:'uploadDoc',data:{unit_id:leaf.id,event_id:ev.id,report_type:ses.type}});parts.push(rb)}
-      }else{
-        parts.push(el('span',{cls:'st no'},merged?'취합 대기':'미제출'))
-        if(!merged&&canUp(leaf.id)){const ub=el('button',{cls:'btn btn-p btn-sm'},'업로드');ub.onclick=()=>openModal({type:'uploadDoc',data:{unit_id:leaf.id,event_id:ev.id,report_type:ses.type}});parts.push(ub)}
+    const sesHasAtt=S.docs.some(d=>isAttach(d)&&!isExpired(d)&&view.evs.some(e=>e.id===d.event_id))
+    const statusParts=(leaf,ev,{merged=false}={})=>{   // [보고 배지][별첨 배지][버튼] 열 고정
+      const slot=(cls,child)=>{if(cls==='slot-att'&&!sesHasAtt)return null;const s=el('div',{cls});if(child)s.append(child);return s}
+      if(ev.mode==='skipped'){
+        return {parts:[slot('slot-rep',el('span',{cls:'st sk'},'생략')),slot('slot-att'),slot('slot-btn')].filter(Boolean),submitted:null}
       }
+      const docs=docFor(leaf.id).filter(d=>!isAttach(d)).sort((a,b)=>(b.version||0)-(a.version||0)||String(b.uploaded_at).localeCompare(String(a.uploaded_at)))
+      const atts=attachAll(leaf.id,ev.id)
+      if(docs.length) docsBySlot[leaf.id]=docs[0]
+      let repEl=null, attEl=null, btnEl=null
+      if(docs.length){
+        repEl=el('span',{cls:'st ok clickable',title:`클릭하면 내려받기\n${currentDocName(docs[0])}`},`제출 v${docs[0].version||1}`)
+        repEl.onclick=e=>{e.stopPropagation();downloadDoc(docs[0])}
+        if(!merged&&canUp(leaf.id)){btnEl=el('button',{cls:'btn btn-sm'},'재제출');btnEl.onclick=()=>openModal({type:'uploadDoc',data:{unit_id:leaf.id,event_id:ev.id,report_type:ses.type}})}
+      }else{
+        repEl=el('span',{cls:'st no'},merged?'취합 대기':'미제출')
+        if(!merged&&canUp(leaf.id)){btnEl=el('button',{cls:'btn btn-p btn-sm'},'업로드');btnEl.onclick=()=>openModal({type:'uploadDoc',data:{unit_id:leaf.id,event_id:ev.id,report_type:ses.type}})}
+      }
+      if(atts.length){
+        attEl=el('span',{cls:'st att clickable',title:'클릭하면 내려받기\n'+atts.map(a=>a.name).join('\n')},`별첨 ${atts.length}`)
+        attEl.onclick=async e=>{e.stopPropagation();for(const a of atts){await downloadDoc(a);await new Promise(r=>setTimeout(r,400))}}
+      }
+      const parts=[slot('slot-rep',repEl),slot('slot-att',attEl),slot('slot-btn',btnEl)].filter(Boolean)
+      if(canUp(leaf.id)&&!merged) parts._drop=f=>openModal({type:'uploadDoc',data:{unit_id:leaf.id,event_id:ev.id,report_type:ses.type,file:f}})
+      parts._hist={unit_id:leaf.id,event_id:ev.id,report_type:ses.type}
       return {parts,submitted:docs.length>0}
     }
     const mkRow=(unit,ev,cls)=>{   // "07:30 ● 미국" / "(이어서) ● 컨버전스"
@@ -1074,34 +1166,56 @@ function renderDashboard() {
         if(!kids.length){
           const r=mkRow(unit,ev,''); const nm=el('div',{cls:'un ell'},unit.name); if(memo)nm.append(el('span',{cls:'sub'},' '+memo))
           const st=statusParts(unit,ev); if(st.submitted!==null){tot++; if(st.submitted)done++}
-          r.append(nm,...st.parts); if(st.parts._drop)acceptDrop(r,st.parts._drop); box.append(r); continue
+          if(st.parts._hist){const t2=nm.firstChild;const link=el('span',{cls:'clk',title:'클릭하면 제출 이력 확인'},unit.name);link.onclick=e=>{e.stopPropagation();openModal({type:'docHistory',data:st.parts._hist})};nm.replaceChild(link,t2)}
+          r.append(nm,el('span',{cls:'sp'}),...st.parts); if(st.parts._drop)acceptDrop(r,st.parts._drop); box.append(r); continue
         }
         // 상위 조직: 클릭하면 하위 펼침
         const open=S.expanded.has(unit.id)
         const r=mkRow(unit,ev,'parent'+(open?' open':''))
         const nm=el('div',{cls:'un ell'},el('span',{cls:'caret'},open?'▾':'▸'),unit.name); if(memo)nm.append(el('span',{cls:'sub'},' '+memo))
-        r.append(nm)
+        r.append(nm,el('span',{cls:'sp'}))
         const kidSt=kids.map(k=>statusParts(k,ev))
         if(unit.merge_kids){                 // 운영: 4건 모두 제출 → 통합본 1건이 제출 단위
           const st=statusParts(unit,ev,{merged:true}); if(st.submitted!==null){tot++; if(st.submitted)done++}
-          if(!st.submitted) st.parts[0].textContent=`취합 대기 ${kidSt.filter(k=>k.submitted).length}/${kids.length}`
+          if(st.parts._hist){const t3=nm.childNodes[1];const link=el('span',{cls:'clk',title:'클릭하면 제출 이력 확인'},unit.name);link.onclick=e=>{e.stopPropagation();openModal({type:'docHistory',data:st.parts._hist})};nm.replaceChild(link,t3)}
+          const nk=kidSt.filter(k=>k.submitted).length
+          if(!st.submitted){const b0=st.parts[0].firstChild; if(b0)b0.textContent=`취합 ${nk}/${kids.length}`}
           r.append(...st.parts)
         }else{                               // 유럽: 하위 각각이 제출 단위
           const n=kidSt.filter(k=>k.submitted).length; if(ev.mode!=='skipped'){tot++; if(n===kids.length)done++}
-          r.append(el('span',{cls:'st '+(n===kids.length?'ok':n?'part':'no')},n===kids.length?'제출 완료':`제출 ${n}/${kids.length}`))
+          // 하위 각각이 제출 단위 — 상위 행은 빈 슬롯으로 라인만 맞춤
+          r.append(el('div',{cls:'slot-rep'}),...(sesHasAtt?[el('div',{cls:'slot-att'})]:[]),el('div',{cls:'slot-btn'}))
         }
         r.onclick=e=>{if(e.target.closest('button,.dl'))return;S.expanded.has(unit.id)?S.expanded.delete(unit.id):S.expanded.add(unit.id);refreshMain()}
         box.append(r)
-        if(open) kids.forEach((k,i)=>{const cr=el('div',{cls:'sesrow child'});cr.append(el('span',{cls:'tm'},''),el('div',{cls:'un ell'},k.name),...kidSt[i].parts);if(kidSt[i].parts._drop)acceptDrop(cr,kidSt[i].parts._drop);box.append(cr)})
+        if(open) kids.forEach((k,i)=>{const cr=el('div',{cls:'sesrow child'});const klink=el('span',{cls:'clk',title:'클릭하면 제출 이력 확인'},k.name);if(kidSt[i].parts._hist)klink.onclick=e=>{e.stopPropagation();openModal({type:'docHistory',data:kidSt[i].parts._hist})};const kn=el('div',{cls:'un ell'},klink);cr.append(el('span',{cls:'tm'},''),kn,el('span',{cls:'sp'}),...kidSt[i].parts);if(kidSt[i].parts._drop)acceptDrop(cr,kidSt[i].parts._drop);box.append(cr)})
       }
     })
     box.append(el('div',{cls:'sesfoot'},el('span',{},tot?`제출 ${done} / ${tot}`:'제출 대상 없음'),el('span',{cls:'fw7',style:{color:done===tot?'#059669':'#dc2626'}},!tot?'생략':done===tot?'전 사업부/법인 제출 완료':`미제출 ${tot-done}`)))
     // 전체 내려받기: 전 사업부 제출 완료 시에만 활성화
     const nFiles=sessionSlots(view).filter(s=>docsBySlot[s.leaf.id]).length
     const dlRow=el('div',{cls:'sesdl'})
-    const dlBtn=el('button',{cls:'btn btn-p'},`📦 전체 내려받기 (${nFiles}건)`)
-    if(done<tot){ dlBtn.disabled=true; dlRow.append(dlBtn,el('span',{cls:'txs tmu'},'전 사업부/법인 제출 완료 시 활성화')) }
-    else { dlBtn.onclick=async()=>{dlBtn.disabled=true;dlBtn.textContent='압축 중…';try{const n=await downloadSessionZip(view,docsBySlot);toast(`${n}건 내려받기 완료`)}catch(e){toast(e.message,'err')}finally{dlBtn.disabled=false;dlBtn.textContent=`📦 전체 내려받기 (${nFiles}건)`}}; dlRow.append(dlBtn) }
+    const nAll=sessionDocsInOrder(view).length
+    const dlBtn=el('button',{cls:'btn btn-p'},`📄 전체 다운로드 (${nAll}건)`)
+    const pvBtn=el('button',{cls:'btn'},'👁 전체 미리보기')
+    if(done<tot){
+      dlBtn.disabled=true; pvBtn.disabled=true
+      dlRow.append(dlBtn,pvBtn,el('div',{cls:'txs tmu',style:{width:'100%'}},'전 사업부/법인 제출 완료 시 활성화'))
+    }else{
+      dlBtn.onclick=async()=>{
+        dlBtn.disabled=pvBtn.disabled=true
+        try{ const n=await downloadSessionPdfs(view,null,(i,t)=>{dlBtn.textContent=`내려받는 중… ${i}/${t}`}); toast(`${n}건 내려받기 완료`) }
+        catch(e){toast(e.message,'err')}
+        finally{dlBtn.disabled=pvBtn.disabled=false;dlBtn.textContent=`📄 전체 다운로드 (${nAll}건)`}
+      }
+      pvBtn.onclick=async()=>{
+        pvBtn.disabled=dlBtn.disabled=true
+        try{ const n=await previewSessionPdfs(view,(i,t)=>{pvBtn.textContent=`여는 중… ${i}/${t}`}); toast(`${n}건 미리보기 열림`) }
+        catch(e){toast(e.message,'err')}
+        finally{pvBtn.disabled=dlBtn.disabled=false;pvBtn.textContent='👁 전체 미리보기'}
+      }
+      dlRow.append(dlBtn,pvBtn)
+    }
     box.append(dlRow)
   }
   right.append(box)
@@ -1122,7 +1236,7 @@ function renderDashboard() {
         row.append(el('span',{cls:'tm'+(isCont?' cont':isWr?' wr':'')},tl),el('span',{cls:'evdot',style:{background:unit?.color||'#9ca3af',width:'8px',height:'8px',flexShrink:'0'}}))
         const memo=unit?evMemo(ev):''
         const nm=el('div',{cls:'un ell'},unit?unit.name:ev.title.replace(/^\(이어서\)\s*/,'')); if(memo)nm.append(el('span',{cls:'sub'},' '+memo))
-        row.append(nm,badge(ev))
+        row.append(nm,el('span',{cls:'sp'}),badge(ev))
         if(isAdmin()){
           const eb=el('button',{cls:'btn btn-sm'},'수정'); eb.onclick=()=>{S.evForm={id:ev.id,date:ev.date,unit_id:ev.unit_id,type:ev.type,mode:ev.mode||'meeting',time:ev.time||'',memo,week_label:ev.week_label||''};refreshMain()}
           const del=el('button',{cls:'btn btn-d btn-sm'},'삭제');del.onclick=async()=>{if(!confirm('이 일정을 삭제할까요?'))return;const{error}=await sb.from('events').delete().eq('id',ev.id);if(error){toast(error.message,'err');return}S.events=S.events.filter(e=>e.id!==ev.id);toast('삭제됨');refreshMain()}
@@ -1143,8 +1257,9 @@ function renderDashboard() {
 function renderUnit(){
   const unit=S.selUnit
   const kids=kidsOf(unit.id)
-  if(kids.length&&!kids.some(k=>k.id===S.selLeaf)) S.selLeaf=kids[0].id
-  const leaf=kids.length?getUnit(S.selLeaf):unit
+  const pickables=kids.length?(unit.merge_kids?[unit,...kids]:kids):[unit]   // 취합 상위(운영)는 자신도 선택 가능
+  if(!pickables.some(u=>u.id===S.selLeaf)) S.selLeaf=pickables[0].id
+  const leaf=getUnit(S.selLeaf)||unit
   const ct=S.contacts.find(c=>c.unit_id===unit.id)
   const docs=[...S.docs.filter(d=>d.unit_id===leaf.id&&d.report_type===S.reportTab)].sort((a,b)=>b.uploaded_at.localeCompare(a.uploaded_at))
   const [wFrom,wTo]=monthWindow()
@@ -1171,9 +1286,13 @@ function renderUnit(){
     tabs.append(btn)
   }
   frag.append(tabs)
-  if(kids.length){
+  if(pickables.length>1){
     const sc=el('div',{cls:'subchips'})
-    for(const k of kids.filter(k=>canView(k.id))){const c=el('span',{cls:'chip'+(S.selLeaf===k.id?' on':'')},k.name);c.onclick=()=>{S.selLeaf=k.id;refreshMain()};sc.append(c)}
+    for(const k of pickables.filter(k=>canView(k.id))){
+      const c=el('span',{cls:'chip'+(S.selLeaf===k.id?' on':'')+(k.id===unit.id?' pchip':'')},k.name)
+      c.onclick=()=>{S.selLeaf=k.id;S.selEventKey=null;refreshMain()}
+      sc.append(c)
+    }
     frag.append(sc)
   }
 
@@ -1195,25 +1314,49 @@ function renderUnit(){
 
   if(!selEv){ frag.append(el('div',{cls:'empty'},'일정을 선택하면 해당 일정의 자료를 확인하고 제출할 수 있습니다')); return frag }
 
-  const evDocs=S.docs.filter(d=>d.unit_id===leaf.id&&d.event_id===selEv.id&&!isExpired(d)).sort((a,b)=>(b.version||0)-(a.version||0)||String(b.uploaded_at).localeCompare(String(a.uploaded_at)))
+  const evDocs=reportDocs(leaf.id,selEv.id)
+  const evAtts=attachDocs(leaf.id,selEv.id)
   card.append(el('div',{cls:'evsum'},
     el('span',{cls:'evsum-d'},`${fmtD(selEv.date)}${selEv.time?' '+selEv.time:''}`),
     el('span',{cls:'f1 ell'},evTitleFor(selEv,leaf)),
     el('span',{cls:'st '+(evDocs.length?'ok':'no')},evDocs.length?`제출 v${evDocs[0].version||1}`:'미제출')))
 
-  // 업로드 — 점선 드롭존
+  // 좌: 보고 자료 / 우: 별첨 자료
+  const cols=el('div',{cls:'unit2'})
+  const colL=el('div',{cls:'ucol'}), colR=el('div',{cls:'ucol'})
+  cols.append(colL,colR); frag.append(cols)
+
+  const docRow=(doc,{attach=false}={})=>{
+    const row=el('div',{cls:'row',style:{flexWrap:'wrap',gap:'8px'}})
+    const info=el('div',{style:{flex:'1',overflow:'hidden',minWidth:'0'}})
+    const nameRow=el('div',{})
+    nameRow.append(el('span',{cls:'fw7 ts ell'},currentDocName(doc)))
+    if(!attach&&doc.version&&doc.version===evDocs[0]?.version) nameRow.append(el('span',{style:{fontSize:'9px',padding:'1px 6px',borderRadius:'10px',background:'#dcfce7',color:'#16a34a',fontWeight:'700',marginLeft:'5px'}},'최신'))
+    const dl_=docDaysLeft(doc); nameRow.append(el('span',{style:{fontSize:'9px',padding:'1px 6px',borderRadius:'10px',marginLeft:'5px',fontWeight:'700',background:dl_<=3?'#fef2f2':'#f3f4f6',color:dl_<=3?'#dc2626':'#6b7280'}},`${dl_}일 후 삭제`))
+    info.append(nameRow,el('div',{cls:'txs tmu mt8'},`${fmtDT(doc.uploaded_at)} · ${doc.uploaded_by_name||''} · ${fmtB(doc.size||0)}`))
+    const btns=el('div',{cls:'flex',style:{gap:'6px',flexShrink:'0'}})
+    const viewBtn=el('button',{cls:'btn btn-sm'},'미리보기')
+    viewBtn.onclick=async()=>{const url=await DB.getFileUrl(doc.file_path);if(url)window.open(url,'_blank');else toast('URL 생성 실패','err')}
+    const dlBtn=el('button',{cls:'btn btn-sm'},'다운로드'); dlBtn.onclick=()=>downloadDoc(doc)
+    btns.append(viewBtn,dlBtn)
+    if(canUp(leaf.id)){
+      const delBtn=el('button',{cls:'btn btn-d btn-sm'},'삭제')
+      delBtn.onclick=async()=>{if(!confirm('삭제하시겠습니까?'))return;try{await DB.deleteDoc(doc);S.docs=S.docs.filter(d=>d.id!==doc.id);toast('삭제되었습니다.');refreshMain()}catch(e){toast(e.message,'err')}}
+      btns.append(delBtn)
+    }
+    row.append(el('div',{cls:'ficon pdf'},'PDF'),info,btns)
+    return row
+  }
+
+  // ── 왼쪽: 보고 자료
+  colL.append(el('div',{cls:'uhead'},`📄 보고 자료 (${evDocs.length}건)`))
   if(canUp(leaf.id)&&selEv.mode!=='skipped'){
     const fileInput=el('input',{type:'file',accept:'.pdf,application/pdf',style:{display:'none'}})
     const dz=el('div',{cls:'dropzone'})
     const dzMain=el('div',{cls:'dz-main'},'📄 PDF 파일을 여기에 끌어다 놓으세요')
-    const dzSub=el('div',{cls:'dz-sub'},'또는 클릭해서 파일 선택 · PPT·Word는 PDF로 내보낸 뒤 업로드')
-    const dzName=el('div',{cls:'dz-name'},`저장될 파일명: ${autoDocName(leaf.id,selEv.id,S.reportTab).name}`)
-    dz.append(dzMain,dzSub,dzName)
+    dz.append(dzMain,el('div',{cls:'dz-sub'},'또는 클릭해서 파일 선택'),el('div',{cls:'dz-name'},`저장될 파일명: ${autoDocName(leaf.id,selEv.id,S.reportTab).name}`))
     dz.onclick=()=>{if(!S.uploading)fileInput.click()}
-    acceptDrop(dz,f=>{if(!S.uploading)doUpload(f)})
-    fileInput.onchange=e=>{const f=e.target.files?.[0];if(!f)return;fileInput.value='';doUpload(f)}
-    card.append(dz,fileInput)
-    async function doUpload(file){
+    const doUpload=async file=>{
       if(!/\.pdf$/i.test(file.name)){toast('PDF 파일만 업로드할 수 있습니다','err');return}
       S.uploading=true; dz.classList.add('busy'); dzMain.textContent='업로드 중…'
       try{
@@ -1223,38 +1366,38 @@ function renderUnit(){
       }catch(e){toast(e.message,'err')}
       finally{S.uploading=false;refreshMain()}
     }
+    acceptDrop(dz,f=>{if(!S.uploading)doUpload(f)})
+    fileInput.onchange=e=>{const f=e.target.files?.[0];if(!f)return;fileInput.value='';doUpload(f)}
+    colL.append(dz,fileInput)
   }else if(selEv.mode==='skipped'){
-    card.append(el('div',{cls:'txs tmu',style:{marginTop:'8px'}},'⊘ 생략된 보고입니다 — 자료 제출이 필요하지 않습니다'))
+    colL.append(el('div',{cls:'txs tmu',style:{padding:'8px 0'}},'⊘ 생략된 보고입니다 — 자료 제출이 필요하지 않습니다'))
   }
+  if(!evDocs.length) colL.append(el('div',{cls:'empty',style:{padding:'20px'}},'아직 제출된 자료가 없습니다'))
+  else{ const l=el('div',{cls:'ulist'}); evDocs.forEach(d=>l.append(docRow(d))); colL.append(l) }
 
-  // 선택 일정의 자료 목록
-  frag.append(el('div',{style:{fontSize:'12.5px',fontWeight:'800',margin:'4px 0 8px'}},`제출 자료 (${evDocs.length}건)`))
-  if(!evDocs.length){frag.append(el('div',{cls:'empty'},'아직 제출된 자료가 없습니다'))}
-  else{
-    const list=el('div',{style:{display:'flex',flexDirection:'column',gap:'7px'}})
-    for(const doc of evDocs){
-      const row=el('div',{cls:'row',style:{flexWrap:'wrap',gap:'8px'}})
-      const info=el('div',{style:{flex:'1',overflow:'hidden'}})
-      const nameRow=el('div',{})
-      nameRow.append(el('span',{cls:'fw7 ts ell'},doc.name))
-      if(doc.version&&doc.version===evDocs[0].version) nameRow.append(el('span',{style:{fontSize:'9px',padding:'1px 6px',borderRadius:'10px',background:'#dcfce7',color:'#16a34a',fontWeight:'700',marginLeft:'5px'}},'최신'))
-      const dl_=docDaysLeft(doc); nameRow.append(el('span',{style:{fontSize:'9px',padding:'1px 6px',borderRadius:'10px',marginLeft:'5px',fontWeight:'700',background:dl_<=3?'#fef2f2':'#f3f4f6',color:dl_<=3?'#dc2626':'#6b7280'}},`${dl_}일 후 삭제`))
-      info.append(nameRow,el('div',{cls:'txs tmu mt8'},`${fmtD(String(doc.uploaded_at).slice(0,10))} · ${doc.uploaded_by_name||''} · ${fmtB(doc.size||0)}${doc.orig_name?' · 원본: '+doc.orig_name:''}`))
-      const btns=el('div',{cls:'flex',style:{gap:'6px',flexShrink:'0'}})
-      const viewBtn=el('button',{cls:'btn btn-sm'},'미리보기')
-      viewBtn.onclick=async()=>{const url=await DB.getFileUrl(doc.file_path);if(url)window.open(url,'_blank');else toast('URL 생성 실패','err')}
-      const dlBtn=el('button',{cls:'btn btn-sm'},'다운로드'); dlBtn.onclick=()=>downloadDoc(doc)
-      btns.append(viewBtn,dlBtn)
-      if(canUp(leaf.id)){
-        const delBtn=el('button',{cls:'btn btn-d btn-sm'},'삭제')
-        delBtn.onclick=async()=>{if(!confirm('삭제하시겠습니까?'))return;try{await DB.deleteDoc(doc);S.docs=S.docs.filter(d=>d.id!==doc.id);toast('삭제되었습니다.');refreshMain()}catch(e){toast(e.message,'err')}}
-        btns.append(delBtn)
-      }
-      row.append(el('div',{cls:'ficon pdf'},'PDF'),info,btns)
-      list.append(row)
+  // ── 오른쪽: 별첨 자료
+  colR.append(el('div',{cls:'uhead'},`📎 별첨 자료 (${evAtts.length}건)`))
+  if(canUp(leaf.id)&&selEv.mode!=='skipped'){
+    const afi=el('input',{type:'file',accept:'.pdf,application/pdf',multiple:'multiple',style:{display:'none'}})
+    const adz=el('div',{cls:'dropzone'})
+    const adzMain=el('div',{cls:'dz-main'},'📎 별첨 PDF를 여기에 끌어다 놓으세요')
+    adz.append(adzMain,el('div',{cls:'dz-sub'},'또는 클릭해서 파일 선택 · 여러 건 가능'),el('div',{cls:'dz-name'},'파일명은 올린 그대로 저장됩니다'))
+    adz.onclick=()=>{if(!S.uploading)afi.click()}
+    const upA=async files=>{
+      const list=[...files].filter(f=>{if(!/\.pdf$/i.test(f.name)){toast('PDF 파일만 업로드할 수 있습니다','err');return false}return true})
+      if(!list.length)return
+      S.uploading=true; adz.classList.add('busy'); adzMain.textContent='업로드 중…'
+      try{ for(const f of list){const d=await DB.uploadFile(f,leaf.id,S.reportTab,selEv.id,'attachment');S.docs.unshift(d)} toast(`별첨 ${list.length}건 등록 완료`) }
+      catch(e){toast(e.message,'err')}
+      finally{S.uploading=false;refreshMain()}
     }
-    frag.append(list)
+    acceptDrop(adz,f=>{if(!S.uploading)upA([f])})
+    afi.onchange=e=>{const fs2=e.target.files;if(fs2?.length){afi.value='';upA(fs2)}}
+    colR.append(adz,afi)
   }
+  if(!evAtts.length) colR.append(el('div',{cls:'empty',style:{padding:'20px'}},'등록된 별첨 자료가 없습니다'))
+  else{ const l=el('div',{cls:'ulist'}); evAtts.forEach(d=>l.append(docRow(d,{attach:true}))); colR.append(l) }
+
   return frag
 }
 
@@ -1505,8 +1648,8 @@ function renderAdmin(){
 function openModal(config){
   const overlay=el('div',{cls:'overlay'})
   overlay.onclick=e=>{if(e.target===overlay)overlay.remove()}
-  const modal=el('div',{cls:'modal'})
-  const TITLES={addUnit:'사업부/법인 추가',editUnit:'사업부/법인 수정',inviteUser:'사용자 초대',editProfile:'사용자 수정',addContact:'담당자 추가',editContact:'담당자 수정',addEvent:'일정 추가',addRecipient:'수신인 추가',editRecipient:'수신인 수정',uploadDoc:'자료 제출',grantRole:'권한 부여',addSession:'보고 세션 일괄 추가',myAccount:'내 계정'}
+  const modal=el('div',{cls:'modal'+(config.type==='uploadDoc'?' wide':'')})
+  const TITLES={addUnit:'사업부/법인 추가',editUnit:'사업부/법인 수정',inviteUser:'사용자 초대',editProfile:'사용자 수정',addContact:'담당자 추가',editContact:'담당자 수정',addEvent:'일정 추가',addRecipient:'수신인 추가',editRecipient:'수신인 수정',uploadDoc:'자료 제출',grantRole:'권한 부여',addSession:'보고 세션 일괄 추가',myAccount:'내 계정',docHistory:'제출 이력'}
   const COLORS=['#2563eb','#059669','#dc2626','#d97706','#7c3aed','#0891b2','#be185d','#374151','#b45309','#0f766e','#c2410c','#9333ea']
   const closeBtn=el('button',{cls:'',style:{background:'transparent',border:'none',fontSize:'22px',color:'#9ca3af',cursor:'pointer'}},'×')
   closeBtn.onclick=()=>overlay.remove()
@@ -1640,6 +1783,35 @@ function openModal(config){
       const g=el('div',{cls:'g2'});g.append(inp('email','이메일','email'),inp('phone','사무실 전화'));body.append(g)
       body.append(inp('mobile','휴대폰'))
     }
+    if(t==='docHistory'){
+      const leaf=getUnit(data.unit_id), ev=S.events.find(e=>e.id===data.event_id)
+      body.append(el('div',{cls:'doc-prev'},el('div',{cls:'k'},'조직 · 일정'),el('div',{cls:'fw7'},leaf?.name||''),
+        el('div',{cls:'txs tmu'},ev?`${fmtD(ev.date)}${ev.time?' '+ev.time:''} · ${evTitleFor(ev,leaf)}`:'일정 미연결')))
+      const holder=el('div',{})
+      const buildHist=()=>{
+        const box=el('div',{})
+        const docs=reportDocs(data.unit_id,data.event_id)
+        box.append(el('div',{cls:'hist-sec'},`📄 보고 자료 제출 이력 (${docs.length}건)`))
+        if(!docs.length) box.append(el('div',{cls:'txs tmu',style:{padding:'4px 0'}},'아직 제출된 자료가 없습니다'))
+        docs.forEach((d,i)=>{
+          const row=el('div',{cls:'hist-row'})
+          row.append(el('span',{cls:'vb'+(i===0?' cur':'')},`v${d.version||1}`),
+            el('div',{cls:'nm2'},el('div',{cls:'ell',title:currentDocName(d)},currentDocName(d)),
+              el('div',{cls:'meta2'},`${fmtDT(d.uploaded_at)} · ${d.uploaded_by_name||''} · ${fmtB(d.size||0)}`)))
+          box.append(row)
+        })
+        const atts=attachAll(data.unit_id,data.event_id)
+        if(atts.length){
+          box.append(el('div',{cls:'hist-sec'},`📎 별첨 자료 (${atts.length}건)`))
+          for(const a of atts){const own=getUnit(a.unit_id)?.name||''
+            box.append(el('div',{cls:'hist-row'},el('span',{cls:'vb'},'별첨'),
+              el('div',{cls:'nm2'},el('div',{cls:'ell',title:a.name},a.name),
+                el('div',{cls:'meta2'},`${own!==leaf?.name?own+' · ':''}${fmtDT(a.uploaded_at)} · ${a.uploaded_by_name||''} · ${fmtB(a.size||0)}`))))}
+        }
+        return box
+      }
+      holder.append(buildHist()); body.append(holder)
+    }
     if(t==='myAccount'){
       const units=(S.profile?.unit_ids||[]).map(id=>getUnit(id)?.name||id).join(', ')
       const info=el('div',{style:{marginBottom:'14px'}})
@@ -1657,49 +1829,41 @@ function openModal(config){
       const leaf=getUnit(data.unit_id), ev=S.events.find(e=>e.id===data.event_id)
       const {name}=autoDocName(data.unit_id,data.event_id,data.report_type)
       body.append(el('div',{cls:'doc-prev'},el('div',{cls:'k'},'제출 조직 · 연결 일정'),el('div',{cls:'fw7'},`${leaf?.name||''}`),el('div',{cls:'txs tmu'},ev?`${fmtD(ev.date)} ${ev.time||''} ${evTitleFor(ev,leaf)}`:'일정 미연결')))
-      const fb=el('div',{cls:'filebox'},'PDF 파일을 여기에 끌어다 놓거나 클릭해서 선택'); const fi=el('input',{type:'file',accept:'.pdf,application/pdf',style:{display:'none'}})
+      data.atts=data.atts||[]
+      const g=el('div',{cls:'up2'})
+      // 왼쪽 — 보고 자료
+      const c1=el('div',{cls:'col'})
+      c1.append(el('div',{cls:'ch'},'📄 보고 자료'))
+      const fb=el('div',{cls:'filebox'},'PDF를 끌어다 놓거나 클릭해 선택'); const fi=el('input',{type:'file',accept:'.pdf,application/pdf',style:{display:'none'}})
       fb.onclick=()=>fi.click()
       const setFile=f=>{data.file=f;fb.textContent=`✓ ${f.name} (${fmtB(f.size)})`;fb.classList.add('has')}
       if(data.file) setFile(data.file)
       fi.onchange=()=>{const f=fi.files?.[0];if(!f)return;if(!/\.pdf$/i.test(f.name)){toast('PDF 파일만 업로드할 수 있습니다','err');fi.value='';return}setFile(f)}
       acceptDrop(fb,setFile)
-      body.append(fb,fi)
-      body.append(el('div',{cls:'doc-prev'},el('div',{cls:'k'},'저장될 파일명 (자동 생성)'),el('div',{cls:'fw7'},name)))
-      body.append(el('div',{cls:'txs tmu mt8'},'PPT·Word 문서는 PDF로 내보낸 뒤 올려주세요. 재제출하면 버전(_v2, _v3…)이 올라가고 이전 버전도 보관됩니다.'))
+      c1.append(fb,fi,el('div',{cls:'doc-prev'},el('div',{cls:'k'},'저장될 파일명 (자동 생성)'),el('div',{cls:'fw7'},name)),
+        el('div',{cls:'sub'},'재제출하면 버전(_v2, _v3…)이 올라가고 이전 버전도 보관됩니다.'))
+      // 오른쪽 — 별첨 자료
+      const c2=el('div',{cls:'col'})
+      c2.append(el('div',{cls:'ch'},'📎 별첨 자료 (선택)'))
+      const ab=el('div',{cls:'filebox'},'별첨 PDF를 끌어다 놓거나 클릭해 선택'); const ai=el('input',{type:'file',accept:'.pdf,application/pdf',multiple:'multiple',style:{display:'none'}})
+      const alist=el('div',{cls:'attlist'})
+      const paintA=()=>{
+        alist.replaceChildren()
+        data.atts.forEach((f,i)=>{
+          const it=el('div',{cls:'attitem'})
+          const x=el('span',{cls:'x'},'✕'); x.onclick=()=>{data.atts.splice(i,1);paintA()}
+          it.append(el('span',{cls:'nm3',title:f.name},f.name),el('span',{cls:'txs tmu'},fmtB(f.size)),x)
+          alist.append(it)
+        })
+      }
+      const addA=f=>{if(!/\.pdf$/i.test(f.name)){toast('PDF 파일만 업로드할 수 있습니다','err');return}data.atts.push(f);paintA()}
+      ab.onclick=()=>ai.click()
+      ai.onchange=()=>{[...(ai.files||[])].forEach(addA);ai.value=''}
+      acceptDrop(ab,addA)
+      c2.append(ab,ai,alist,el('div',{cls:'sub'},'파일명은 올린 그대로 저장됩니다 · 여러 건 등록 가능'))
+      g.append(c1,c2); body.append(g)
+      body.append(el('div',{cls:'txs tmu mt8'},'PPT·Word 문서는 PDF로 내보낸 뒤 올려주세요.'))
     }
-    if(t==='addRecipient'||t==='editRecipient'){
-      const g0=el('div',{cls:'g2'})
-      const gsel=el('div',{cls:'fg'}),gs=el('select',{cls:'input'})
-      for(const g of GRP_ORDER){const op=el('option',{value:g},g);if(data.grp===g)op.selected=true;gs.append(op)}
-      gs.onchange=()=>{data.grp=gs.value}; gsel.append(el('label',{cls:'lbl'},'구분 *'),el('div',{style:{marginTop:'4px'}},gs))
-      const ssel=el('div',{cls:'fg'}),ss=el('select',{cls:'input'})
-      for(const [v,tx] of Object.entries(RCP_STATUS)){const op=el('option',{value:v},tx);if(data.status===v)op.selected=true;ss.append(op)}
-      ss.onchange=()=>{data.status=ss.value}; ssel.append(el('label',{cls:'lbl'},'상태'),el('div',{style:{marginTop:'4px'}},ss))
-      g0.append(gsel,ssel); body.append(g0)
-      const orgIn=inp('org','소속 (사업부/법인) *','text','예: 에너지사업부')
-      const dl=el('datalist',{id:'org-dl'}); for(const o of new Set(S.recipients.map(r=>r.org).filter(Boolean))) dl.append(el('option',{value:o})); orgIn.querySelector('input').setAttribute('list','org-dl'); orgIn.append(dl)
-      body.append(orgIn)
-      const g1=el('div',{cls:'g2'});g1.append(inp('l1','1차'),inp('l2','2차'));body.append(g1)
-      body.append(inp('l3','3차'))
-      const g2=el('div',{cls:'g2'});g2.append(inp('name','성함 *'),inp('title','직책'));body.append(g2)
-      body.append(inp('email','메일 주소','email'),inp('note','비고','text','예: 당분간 대행, 휴직'))
-    }
-    if(t==='addEvent'){
-      body.append(inp('title','제목 *'))
-      const g=el('div',{cls:'g2'})
-      g.append(inp('date','날짜','date'),sel('type','보고 유형',[['weekly','주요사항 심층보고'],['monthly','월간보고'],['etc','기타 (워크샵·세션 등)']]))
-      body.append(sel('mode','진행 방식',[['meeting','대면 회의'],['written','서면대체 (회의 없이 자료 제출)']]))
-      body.append(g)
-      const g2=el('div',{cls:'g2'});g2.append(inp('time','시작 시간','time'),inp('end_time','종료 시간','time'));body.append(g2)
-      const uSel=el('div',{cls:'fg'})
-      const uSelect=el('select',{cls:'input'})
-      const allOpt=el('option',{value:'all'},'전체');if(data.unit_id==='all')allOpt.selected=true;uSelect.append(allOpt)
-      for(const u of S.units){const opt=el('option',{value:u.id},u.name);if(data.unit_id===u.id)opt.selected=true;uSelect.append(opt)}
-      uSelect.onchange=()=>{data.unit_id=uSelect.value}
-      uSel.append(el('label',{cls:'lbl'},'사업부'),el('div',{style:{marginTop:'4px'}},uSelect));body.append(uSel)
-      body.append(inp('location','장소','text','예: 대회의실, 화상회의'))
-    }
-
     const actions=el('div',{style:{display:'flex',gap:'8px',marginTop:'20px'}})
     const cancelBtn=el('button',{cls:'btn',style:{flex:'1'}},'취소');cancelBtn.onclick=()=>overlay.remove()
     const saveBtn=el('button',{cls:'btn btn-p',style:{flex:'2',justifyContent:'center'}},'저장')
@@ -1758,11 +1922,19 @@ function openModal(config){
           if(t==='addContact'){const{data:r,error}=await sb.from('contacts').insert(data).select().single();if(error)throw error;S.contacts.push(r)}
           else{const{error}=await sb.from('contacts').update(data).eq('id',data.id);if(error)throw error;S.contacts=S.contacts.map(c=>c.id===data.id?{...c,...data}:c)}
         }else if(t==='uploadDoc'){
-          if(!data.file){toast('PDF 파일을 선택하세요','err');return}
+          const atts=data.atts||[]
+          if(!data.file&&!atts.length){toast('제출할 PDF를 선택하세요','err');return}
           saveBtn.disabled=true; saveBtn.textContent='업로드 중...'
-          const doc=await DB.uploadFile(data.file,data.unit_id,data.report_type,data.event_id)
-          S.docs.unshift(doc); toast(`${doc.name} 제출 완료`)
-          try{await afterChildUpload(data.unit_id,data.event_id,data.report_type)}catch(e){toast('통합본 생성 실패: '+e.message,'err')}
+          if(data.file){
+            const doc=await DB.uploadFile(data.file,data.unit_id,data.report_type,data.event_id)
+            S.docs.unshift(doc); toast(`${doc.name} 제출 완료`)
+            try{await afterChildUpload(data.unit_id,data.event_id,data.report_type)}catch(e){toast('통합본 생성 실패: '+e.message,'err')}
+          }
+          for(const f of atts){
+            const ad=await DB.uploadFile(f,data.unit_id,data.report_type,data.event_id,'attachment')
+            S.docs.unshift(ad)
+          }
+          if(atts.length) toast(`별첨 ${atts.length}건 등록 완료`)
         }else if(t==='addRecipient'||t==='editRecipient'){
           if(!data.name?.trim()||!data.org?.trim()){toast('성함과 소속을 입력하세요','err');return}
           const payload={grp:data.grp,org:data.org.trim(),l1:data.l1||data.org.trim(),l2:data.l2||data.l1||data.org.trim(),l3:data.l3||data.l2||data.l1||data.org.trim(),name:data.name.trim(),title:data.title||'',email:(data.email||'').trim(),note:data.note||'',status:data.status||'ok',updated_at:new Date().toISOString()}
@@ -1778,7 +1950,7 @@ function openModal(config){
         overlay.remove(); refreshAll()
       }catch(e){toast(e.message||'저장 실패','err')}
     }
-    actions.append(cancelBtn,saveBtn); body.append(actions)
+    if(config.type!=='docHistory'){actions.append(cancelBtn,saveBtn); body.append(actions)}   // 이력 창은 × 로만 닫음
   }
   rebuildBody()
   overlay.append(modal); document.body.append(overlay)
