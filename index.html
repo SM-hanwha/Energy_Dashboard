@@ -81,6 +81,20 @@ button,input,select,textarea{font-family:inherit;font-size:13px}
 .uchecks{display:flex;flex-wrap:wrap;gap:7px;margin-top:6px}
 .ucheck{display:flex;align-items:center;gap:5px;font-size:12px;cursor:pointer;color:#1f2937}
 .ucheck.kid{padding-left:12px;color:#6b7280}
+.phrow{display:flex;gap:6px;margin-top:4px;flex-wrap:wrap}
+.phrow .dial{width:112px;flex:0 0 auto}
+.phrow input{flex:1 1 130px;min-width:120px}
+.unitct{display:flex;flex-wrap:wrap;align-items:center;gap:6px 18px;margin:-6px 0 14px;padding:9px 12px;background:#f9fafb;border:1px solid #f3f4f6;border-radius:9px;font-size:12px}
+.unitct .nm{font-weight:700;color:#374151}
+.unitct .it{display:inline-flex;align-items:baseline;gap:6px;min-width:0}
+.unitct .it .k{color:#9ca3af;font-size:11px}
+.unitct .it .v{text-decoration:none}
+.unitct .it .v.none{color:#d1d5db}
+.ctinfo{border-top:1px solid #f3f4f6;padding-top:9px;margin-top:10px;display:flex;flex-direction:column;gap:5px}
+.ctrow{display:flex;align-items:baseline;gap:8px;font-size:12px}
+.ctrow .k{width:52px;flex-shrink:0;color:#9ca3af;font-size:11px}
+.ctrow .v{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-decoration:none}
+.ctrow .v.none{color:#d1d5db}
 .rolechips{display:flex;flex-wrap:wrap;gap:6px;margin:4px 0 12px}
 .rolechips .chip{height:30px;font-size:12px;padding:0 14px;font-weight:700}
 .gsec{margin-bottom:16px}
@@ -846,6 +860,34 @@ const canUp        = uid => isAdmin() || (S.profile?.role==='uploader' && assign
 const canOpenUnit  = uid => canUp(uid) || kidsOf(uid).some(k=>canUp(k.id))
 const ROLE_NAME    = {admin:'총 관리자',full_viewer:'전체 열람',uploader:'지정 제출',viewer:'지정 열람'}
 const ROLE_ORDER   = ['admin','full_viewer','viewer','uploader']
+// 전화번호 국가번호 (담당자 연락처 입력용)
+const DIAL_CODES=[['+82','한국'],['+81','일본'],['+1','미국'],['+61','호주'],['+39','이탈리아'],['+353','아일랜드'],
+                  ['+44','영국'],['+49','독일'],['+34','스페인'],['+86','중국'],['+65','싱가포르'],['+84','베트남'],['+971','UAE']]
+const UNIT_DIAL={energy:'+82',staff:'+82',japan:'+81',us:'+1',australia:'+61',europe:'+39',europe_dev:'+39',europe_de:'+353',gess:'+82',convergence:'+82'}
+// 국가번호별 자동 하이픈
+function fmtPhone(code,raw){
+  let d=(raw||'').replace(/\D/g,'')
+  if(!d) return ''
+  if(d[0]==='0') d=d.slice(1)                 // 010 → 10, 044 → 44
+  const g=(...sizes)=>{const out=[];let i=0;for(const s of sizes){if(i>=d.length)break;out.push(d.slice(i,i+s));i+=s}if(i<d.length)out.push(d.slice(i));return out.join('-')}
+  if(code==='+82'){                            // 한국
+    if(/^1[0-9]/.test(d)) return d.length>9?g(2,4,4):g(2,3,4)      // 휴대폰·안심번호
+    if(d[0]==='2')        return d.length>8?g(1,4,4):g(1,3,4)      // 서울
+    return d.length>9?g(2,4,4):g(2,3,4)                            // 그 외 지역
+  }
+  if(code==='+81') return d.length>9?g(2,4,4):g(2,3,4)             // 일본
+  if(code==='+1')  return g(3,3,4)                                 // 미국
+  if(code==='+61') return d[0]==='4'?g(3,3,3):g(1,4,4)             // 호주
+  if(code==='+39') return d.length>9?g(3,4,4):g(3,3,4)             // 이탈리아
+  if(code==='+353')return d.length>8?g(2,4,4):g(2,3,4)             // 아일랜드
+  if(code==='+44') return d.length>9?g(4,3,4):g(3,3,4)             // 영국
+  if(d.length<=7) return g(3,4)
+  if(d.length===8) return g(4,4)
+  if(d.length===9) return g(3,3,3)
+  if(d.length===10) return g(3,3,4)
+  return g(3,4,4)
+}
+const splitPhone=v=>{const s=(v||'').trim();const m=s.match(/^(\+\d{1,4})\s*(.*)$/);return m?[m[1],m[2]]:['',s]}
 const roleDesc     = (role,unit_ids=[]) => {
   const names=(unit_ids||[]).map(id=>getUnit(id)?.name||id).join(', ')
   if(role==='admin') return '기획조정팀 담당자 — 총 관리자 권한 (대시보드 전체 수정·관리)'
@@ -1292,15 +1334,24 @@ function renderUnit(){
   const ph=el('div',{cls:'ph'})
   const titleBlock=el('div',{cls:'flex',style:{gap:'12px'}})
   titleBlock.append(el('span',{cls:'udot',style:{background:unit.color,width:'12px',height:'12px'}}),
-    el('div',{},el('h2',{},unit.name),ct?el('div',{cls:'ts tmu mt8'},`담당: ${ct.name} (${ct.title}) · ${ct.mobile}`):el('span',{})))
+    el('div',{},el('h2',{},unit.name)))
   ph.append(titleBlock)
-  if(ct){
-    const btns=el('div',{cls:'flex'})
-    if(ct.email){const a=el('a',{cls:'btn btn-p btn-sm',href:`mailto:${ct.email}`},'✉ 이메일');btns.append(a)}
-    if(ct.mobile){const a=el('a',{cls:'btn btn-sm',href:`tel:${ct.mobile}`},'📞 전화');btns.append(a)}
-    ph.append(btns)
-  }
   frag.append(ph)
+  if(ct){   // 담당자 정보 — 제목 아래 한 줄로
+    const info=el('div',{cls:'unitct'})
+    info.append(el('span',{cls:'nm'},`담당: ${ct.name}${ct.title?' ('+ct.title+')':''}`))
+    const item=(lbl,val,href,color)=>{
+      const w=el('span',{cls:'it'})
+      w.append(el('span',{cls:'k'},lbl))
+      if(val){const a=el('a',{cls:'v',href});a.style.color=color||'#374151';a.textContent=val;w.append(a)}
+      else w.append(el('span',{cls:'v none'},'미등록'))
+      return w
+    }
+    info.append(item('메일',ct.email,`mailto:${ct.email}`,'#2563eb'),
+                item('휴대전화',ct.mobile,`tel:${(ct.mobile||'').replace(/\s/g,'')}`),
+                item('사무실',ct.phone,`tel:${(ct.phone||'').replace(/\s/g,'')}`))
+    frag.append(info)
+  }
 
   const tabs=el('div',{cls:'tabs'})
   for(const [id,lbl] of [['weekly','주요사항 심층보고 (주간)'],['monthly','월간보고'],['etc','기타']]){
@@ -1436,15 +1487,21 @@ function renderContacts(){
   for(const unit of visUnits){
     for(const ct of S.contacts.filter(c=>c.unit_id===unit.id)){
       const card=el('div',{cls:'ctc',style:{borderTopColor:unit.color}})
-      card.append(el('div',{cls:'flex mb8'},
-        el('div',{cls:'avatar',style:{background:unit.color+'22',color:unit.color}},ini(ct.name)),
-        el('div',{style:{marginLeft:'8px',overflow:'hidden'}},el('div',{cls:'fw7 ts ell'},ct.name),el('div',{cls:'txs tmu'},ct.title||''))
-      ))
-      card.append(el('span',{style:{fontSize:'10px',padding:'2px 8px',borderRadius:'20px',background:unit.color+'22',color:unit.color,fontWeight:'700'}},unit.name))
-      const links=el('div',{style:{borderTop:'1px solid #f3f4f6',paddingTop:'9px',marginTop:'9px',display:'flex',flexDirection:'column',gap:'4px'}})
-      if(ct.email) links.append(Object.assign(el('a',{cls:'ctl',href:`mailto:${ct.email}`,style:{color:'#2563eb'}}),'✉ '+ct.email))
-      if(ct.phone) links.append(Object.assign(el('a',{cls:'ctl',href:`tel:${ct.phone}`}),'☎ '+ct.phone))
-      if(ct.mobile&&ct.mobile!==ct.phone) links.append(Object.assign(el('a',{cls:'ctl',href:`tel:${ct.mobile}`}),'📱 '+ct.mobile))
+      const head=el('div',{style:{display:'flex',alignItems:'baseline',gap:'7px',flexWrap:'wrap'}})
+      head.append(el('span',{cls:'fw7',style:{fontSize:'14px'}},ct.name),el('span',{cls:'txs tmu'},ct.title||''))
+      card.append(head)
+      card.append(el('span',{style:{display:'inline-block',marginTop:'5px',fontSize:'10px',padding:'2px 8px',borderRadius:'20px',background:unit.color+'22',color:unit.color,fontWeight:'700'}},unit.name))
+      const links=el('div',{cls:'ctinfo'})
+      const line=(lbl,val,href,color)=>{
+        const r=el('div',{cls:'ctrow'})
+        r.append(el('span',{cls:'k'},lbl))
+        if(val){const a=el('a',{cls:'v',href});a.style.color=color||'#374151';a.textContent=val;r.append(a)}
+        else r.append(el('span',{cls:'v none'},'미등록'))
+        return r
+      }
+      links.append(line('메일',ct.email,`mailto:${ct.email}`,'#2563eb'),
+                   line('휴대전화',ct.mobile,`tel:${ct.mobile}`),
+                   line('사무실',ct.phone,`tel:${ct.phone}`))
       card.append(links)
       if(isAdmin()){
         const br=el('div',{style:{display:'flex',gap:'6px',marginTop:'10px',paddingTop:'9px',borderTop:'1px solid #f3f4f6'}})
@@ -1701,7 +1758,7 @@ function renderAdmin(){
 function openModal(config){
   const overlay=el('div',{cls:'overlay'})
   overlay.onclick=e=>{if(e.target===overlay)overlay.remove()}
-  const modal=el('div',{cls:'modal'+(['uploadDoc','grantRole'].includes(config.type)?' wide':'')})
+  const modal=el('div',{cls:'modal'+(['uploadDoc','grantRole','addContact','editContact'].includes(config.type)?' wide':'')})
   const TITLES={addUnit:'사업부/법인 추가',editUnit:'사업부/법인 수정',inviteUser:'사용자 초대',editProfile:'사용자 수정',addContact:'담당자 추가',editContact:'담당자 수정',addEvent:'일정 추가',addRecipient:'수신인 추가',editRecipient:'수신인 수정',uploadDoc:'자료 제출',grantRole:'권한 부여',addSession:'보고 세션 일괄 추가',myAccount:'내 계정',docHistory:'제출 이력'}
   const COLORS=['#2563eb','#059669','#dc2626','#d97706','#7c3aed','#0891b2','#be185d','#374151','#b45309','#0f766e','#c2410c','#9333ea']
   const closeBtn=el('button',{cls:'',style:{background:'transparent',border:'none',fontSize:'22px',color:'#9ca3af',cursor:'pointer'}},'×')
@@ -1893,14 +1950,62 @@ function openModal(config){
       ugrp.append(checks); body.append(ugrp)
     }
     if(t==='addContact'||t==='editContact'){
+      // 수신인 목록에서 불러오기 (검색 → 클릭하면 아래 입력란 자동 채움)
+      const box=el('div',{cls:'fg'})
+      box.append(el('label',{cls:'lbl'},'수신인 목록에서 불러오기 (선택)'))
+      const sIn=el('input',{cls:'input',placeholder:'이름·메일·소속 검색',value:data._q||''})
+      const list=el('div',{cls:'picklist',style:{maxHeight:'170px',marginTop:'6px'}})
+      const paint=()=>{
+        const q=(data._q||'').trim().toLowerCase()
+        list.replaceChildren()
+        if(!q){list.append(el('div',{cls:'txs tmu',style:{padding:'10px'}},'이름이나 소속을 입력하면 후보가 나옵니다'));return}
+        const rows=S.recipients.filter(r=>r.status!=='excluded'&&[r.name,r.email,r.org,r.l2,r.title].some(v=>(v||'').toLowerCase().includes(q))).slice(0,40)
+        if(!rows.length){list.append(el('div',{cls:'txs tmu',style:{padding:'10px'}},'검색 결과가 없습니다'));return}
+        for(const r of rows){
+          const it=el('div',{cls:'pitem'})
+          it.append(el('div',{style:{flex:'1',minWidth:'0'}},
+            el('div',{cls:'fw7',style:{fontSize:'12.5px'}},`${r.name} ${r.title?'· '+r.title:''}`),
+            el('div',{cls:'txs tmu'},`${r.grp} · ${r.org}${r.l2&&r.l2!==r.org?' '+r.l2:''} · ${r.email||''}`)))
+          it.append(el('span',{cls:'mk'},'+'))
+          it.onclick=()=>{
+            data.name=r.name; data.title=r.title||''; data.email=r.email||''
+            const u=S.units.find(x=>x.name===r.org)||S.units.find(x=>r.org&&x.name.includes(r.org.replace('담당','')))
+            if(u) data.unit_id=u.id
+            data._q=''; rebuildBody()
+          }
+          list.append(it)
+        }
+      }
+      sIn.oninput=()=>{data._q=sIn.value;paint()}
+      box.append(sIn,list); paint(); body.append(box)
+      body.append(el('div',{cls:'txs tmu',style:{margin:'2px 0 10px'}},'목록에 없으면 아래에 직접 입력하세요.'))
+    }
+    if(t==='addContact'||t==='editContact'){
       const unitSel=el('div',{cls:'fg'})
       const uSelect=el('select',{cls:'input'})
       for(const u of S.units){const opt=el('option',{value:u.id},u.name);if(data.unit_id===u.id)opt.selected=true;uSelect.append(opt)}
       uSelect.onchange=()=>{data.unit_id=uSelect.value}
-      unitSel.append(el('label',{cls:'lbl'},'소속 사업부'),el('div',{style:{marginTop:'4px'}},uSelect))
+      unitSel.append(el('label',{cls:'lbl'},'소속 사업부/법인'),el('div',{style:{marginTop:'4px'}},uSelect))
       body.append(unitSel,inp('name','이름 *'),inp('title','직책'))
-      const g=el('div',{cls:'g2'});g.append(inp('email','이메일','email'),inp('phone','사무실 전화'));body.append(g)
-      body.append(inp('mobile','휴대폰'))
+      body.append(inp('email','이메일 *','email'))
+      const phoneField=(key,label,ph)=>{
+        const wrap=el('div',{cls:'fg'})
+        wrap.append(el('label',{cls:'lbl'},label))
+        const row=el('div',{cls:'phrow'})
+        const [code0,num0]=splitPhone(data[key])
+        const sel=el('select',{cls:'input dial'})
+        for(const [c,nm] of DIAL_CODES){const op=el('option',{value:c},`${c} ${nm}`);if((code0||UNIT_DIAL[data.unit_id]||'+82')===c)op.selected=true;sel.append(op)}
+        const num=el('input',{cls:'input',placeholder:ph,value:num0||''})
+        const sync=(reformat)=>{
+          if(reformat){const atEnd=num.selectionStart===num.value.length;const f=fmtPhone(sel.value,num.value);if(f!==num.value){num.value=f;if(atEnd)num.setSelectionRange(f.length,f.length)}}
+          const n2=num.value.trim(); data[key]=n2?`${sel.value} ${n2}`:''
+        }
+        sel.onchange=()=>sync(true); num.oninput=()=>sync(true); num.onblur=()=>sync(true)
+        num.value=fmtPhone(sel.value,num.value); sync()
+        row.append(sel,num); wrap.append(row)
+        return wrap
+      }
+      const g=el('div',{cls:'g2'});g.append(phoneField('mobile','휴대전화 *','10-1234-5678'),phoneField('phone','사무실 전화','44-123-4567'));body.append(g)
     }
     if(t==='docHistory'){
       const leaf=getUnit(data.unit_id), ev=S.events.find(e=>e.id===data.event_id)
@@ -2044,8 +2149,10 @@ function openModal(config){
           S.users=S.users.map(u=>u.id===data.id?{...u,...data}:u)
         }else if(t==='addContact'||t==='editContact'){
           if(!data.name?.trim()){toast('이름을 입력하세요','err');return}
-          if(t==='addContact'){const{data:r,error}=await sb.from('contacts').insert(data).select().single();if(error)throw error;S.contacts.push(r)}
-          else{const{error}=await sb.from('contacts').update(data).eq('id',data.id);if(error)throw error;S.contacts=S.contacts.map(c=>c.id===data.id?{...c,...data}:c)}
+          if(!data.email?.trim()||!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(data.email.trim())){toast('이메일을 정확히 입력하세요','err');return}
+          if(!data.mobile?.trim()||!splitPhone(data.mobile)[1]){toast('휴대전화를 입력하세요','err');return}
+          if(t==='addContact'){const{_q,...payload}=data;const{data:r,error}=await sb.from('contacts').insert(payload).select().single();if(error)throw error;S.contacts.push(r)}
+          else{const{_q,...payload}=data;const{error}=await sb.from('contacts').update(payload).eq('id',data.id);if(error)throw error;S.contacts=S.contacts.map(c=>c.id===data.id?{...c,...payload}:c)}
         }else if(t==='uploadDoc'){
           const atts=data.atts||[]
           if(!data.file&&!atts.length){toast('제출할 PDF를 선택하세요','err');return}
