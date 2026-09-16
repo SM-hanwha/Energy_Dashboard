@@ -194,6 +194,7 @@ button,input,select,textarea{font-family:inherit;font-size:13px}
 .mtab.on{color:#2563eb}
 .ckbtn{border:1px solid #e5e7eb;background:#fff;border-radius:20px;padding:4px 12px;font-size:11.5px;color:#4b5563;cursor:pointer;white-space:nowrap}
 .ckbtn.on{background:#eff6ff;border-color:#bfdbfe;color:#1d4ed8;font-weight:700}
+.unitsel{margin-left:auto;width:auto;max-width:58vw;height:34px;font-size:12px;font-weight:700}
 .askbtn{margin-left:auto;align-self:flex-start;border:1px solid #e5e7eb;background:#fff;border-radius:20px;padding:6px 14px;font-size:12px;font-weight:700;color:#374151;cursor:pointer;white-space:nowrap}
 .askbtn:hover{background:#f3f4f6;border-color:#d1d5db}
 @media (max-width:1100px){.askbtn{margin-left:0}}
@@ -1063,7 +1064,8 @@ function renderApp() {
   const sb=renderSidebar()
   const top=el('div',{cls:'topbar'})
   const menu=el('button',{cls:'menu'},'☰ 메뉴'); menu.onclick=()=>sb.classList.add('open')
-  top.append(el('div',{},el('div',{cls:'tt'},'회의체 대시보드'),el('div',{cls:'ts2'},S.profile?.name||'')),menu)
+  top.append(el('div',{},el('div',{cls:'tt'},'회의체 대시보드'),el('div',{cls:'ts2'},S.profile?.name||'')))
+  if(!isPhone()) top.append(menu)   // 휴대폰은 하단 '더보기'로 대체
   const close=el('button',{cls:'btn btn-sm sb-close'},'✕ 닫기'); close.onclick=()=>sb.classList.remove('open')
   sb.prepend(close)
   sb.addEventListener('click',e=>{const a=e.target.closest('.nav-a');if(a&&!a.querySelector('.nav-caret'))sb.classList.remove('open')})
@@ -1398,6 +1400,23 @@ function renderUnit(){
   titleBlock.append(el('span',{cls:'udot',style:{background:unit.color,width:'12px',height:'12px'}}),
     el('div',{},el('h2',{},unit.name)))
   ph.append(titleBlock)
+  // 조직 전환 — 좁은 화면에서 사이드바 없이 이동
+  if(isNarrow()){
+    const opts=[]
+    for(const u of topUnits().filter(u=>canOpenUnit(u.id))){
+      const kids=kidsOf(u.id).filter(k=>canUp(k.id)||isAdmin())
+      if(kids.length){ if(u.merge_kids)opts.push([u.id,'',u.name]); for(const k of kids) opts.push([u.id,k.id,`${u.name} › ${k.name}`]) }
+      else opts.push([u.id,'',u.name])
+    }
+    const sel=el('select',{cls:'input unitsel'})
+    for(const [uid,lid,label] of opts){
+      const op=el('option',{value:uid+'|'+lid},label)
+      if(uid===unit.id&&(lid===''?!kidsOf(unit.id).length||leaf.id===unit.id:lid===leaf.id)) op.selected=true
+      sel.append(op)
+    }
+    sel.onchange=()=>{const [uid,lid]=sel.value.split('|');S.selUnit=getUnit(uid);S.selLeaf=lid||uid;S.selEventKey=null;refreshMain();window.scrollTo(0,0)}
+    ph.append(sel)
+  }
   frag.append(ph)
   if(ct){   // 담당자 정보 — 제목 아래 한 줄로
     const info=el('div',{cls:'unitct'})
