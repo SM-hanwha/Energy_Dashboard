@@ -439,6 +439,34 @@ button,input,select,textarea{font-family:inherit;font-size:13px}
   html.tablet-device .sesbox>.sesrow>.slot-btn{grid-column:6;grid-row:2}
   html.tablet-device .sesbox>.sesrow>.st{grid-column:4 / -1;grid-row:2}
 }
+/* 태블릿은 왼쪽 메뉴를 유지하고 선택한 대시보드 탭만 표시한다. */
+@media (min-width:641px){
+  html.tablet-device,html.tablet-device body{height:100%;overflow:hidden}
+  html.tablet-device .applayout{height:100vh;height:100dvh;min-height:0;overflow:hidden}
+  html.tablet-device .layout{flex-direction:row;height:auto;min-height:0;overflow:hidden}
+  html.tablet-device .sidebar{display:flex;position:static;inset:auto;width:180px;min-width:180px;z-index:auto}
+  html.tablet-device .sidebar .sb-close,html.tablet-device .topbar{display:none}
+  html.tablet-device .main{overflow-y:auto}
+  html.tablet-device .page{padding:18px}
+  html.tablet-device .nav-a{min-height:40px}
+  html.tablet-device .tablet-dash-header{display:flex;flex-direction:column;gap:14px;margin-bottom:20px}
+  html.tablet-device .tablet-title-row{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+  html.tablet-device .tablet-title-row h2{font-size:20px;font-weight:800}
+  html.tablet-device .tablet-title-row .askbtn{margin-left:auto;align-self:center;min-height:36px}
+  html.tablet-device .tablet-clock-panel{background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:14px}
+  html.tablet-device .tablet-clock-label{font-size:12px;font-weight:700;color:#6b7280;margin-bottom:8px}
+  html.tablet-device .clockwrap{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px;margin-top:0}
+  html.tablet-device .ckbase{grid-column:1 / -1;flex-wrap:wrap;gap:10px;padding:10px 12px}
+  html.tablet-device .ckbase .bt{margin-left:auto;font-size:21px}
+  html.tablet-device .ckchip{min-width:0;border-radius:8px;padding:8px;flex-wrap:wrap;justify-content:space-between;gap:3px 6px}
+  html.tablet-device .ckchip .cl{width:100%;white-space:normal;font-size:11px}
+  html.tablet-device .ckchip .ct2{font-size:16px}
+  html.tablet-device .sespick{flex-wrap:wrap;overflow:visible}
+}
+@media (min-width:641px) and (max-width:900px){
+  html.tablet-device .clockwrap{grid-template-columns:repeat(2,minmax(0,1fr))}
+  html.tablet-device .page{padding:12px}
+}
 </style>
 </head>
 <body>
@@ -474,7 +502,7 @@ const S = {
   events: [], holidays: [], docs: [], users: [], grants: [], recipients: [], mailRules: [], selDate: null,
   rcp: {tab:'list', grps:[], org:'전체', status:'전체', q:''},   // grps 비어있으면 전체
   calY: new Date().getFullYear(), calM: new Date().getMonth(),
-  uploading: false, selLeaf: null, mtab:'cal', showClocks:false, sesMon:null, expanded: new Set(), sbOpen: new Set(), evForm: null, selEvent: null, selEventKey: null,
+  uploading: false, selLeaf: null, mtab:'cal', tabletTab:'cal', tabletDashOpen:false, showClocks:false, sesMon:null, expanded: new Set(), sbOpen: new Set(), evForm: null, selEvent: null, selEventKey: null,
 }
 
 // ── 유틸 ────────────────────────────────────────────────
@@ -934,6 +962,7 @@ const toast = (msg, type='ok') => {
 // ══════════════════════════════════════════════════════
 const isAdmin      = () => S.profile?.role==='admin'
 const isFullViewer = () => S.profile?.role==='full_viewer'
+const canAskAdmin = () => !!S.user&&!isAdmin()
 // 사업부 표시 순서 = 회의 진행 순서 (DB sort_order보다 우선, 목록에 없는 id는 sort_order 순으로 뒤에)
 const UNIT_ORDER   = ['energy','japan','australia','europe','us','convergence','gess','staff']
 const orderUnits   = list => [...list].sort((a,b)=>{
@@ -1137,6 +1166,7 @@ function renderApp() {
 }
 const isNarrow=()=>window.matchMedia('(max-width:860px)').matches
 const isPhone =()=>window.matchMedia('(max-width:640px)').matches   // 휴대폰: 하단 탭 + 섹션 분리
+const isTabletLayout=()=>isTabletDevice()&&!isPhone()
 // 휴대폰 '더보기' — 권한에 따라 항목이 달라짐
 function renderMore(){
   const frag=document.createDocumentFragment()
@@ -1172,7 +1202,7 @@ function renderMore(){
   // 계정
   sec('계정',[
     {icon:'🙍',label:'내 계정',desc:`${S.profile?.name||''} · ${ROLE_NAME[S.profile?.role]||''}`,onclick:()=>openModal({type:'myAccount',data:{p1:'',p2:''}})},
-    {icon:'💬',label:'관리자 문의',desc:'권한 요청 · 일정 수정 문의',onclick:()=>openModal({type:'askAdmin',data:{}})},
+    ...(canAskAdmin()?[{icon:'💬',label:'관리자 문의',desc:'권한 요청 · 일정 수정 문의',onclick:()=>openModal({type:'askAdmin',data:{}})}]:[]),
     {icon:'↩',label:'로그아웃',onclick:async()=>{await sb.auth.signOut();S.user=null;S.profile=null;Object.assign(S,{units:[],contacts:[],events:[],docs:[],users:[],recipients:[],mailRules:[]});render()}},
   ])
   return frag
@@ -1198,7 +1228,11 @@ function renderMobileTabs(){
   }
   return bar
 }
-let _rz=null; window.addEventListener('resize',()=>{clearTimeout(_rz);_rz=setTimeout(()=>{if(S.user&&S.view==='dashboard')refreshMain()},200)})
+let _rz=null, _lastPhone=isPhone(); window.addEventListener('resize',()=>{clearTimeout(_rz);_rz=setTimeout(()=>{
+  const phone=isPhone(), changed=phone!==_lastPhone; _lastPhone=phone
+  if(!S.user)return
+  if(isTabletDevice()&&changed)refreshAll();else if(S.view==='dashboard')refreshMain()
+},200)})
 function renderMainArea() {
   const main=el('div',{id:'main-area',cls:'main'})
   const page=el('div',{cls:'page'})
@@ -1224,7 +1258,22 @@ function renderSidebar() {
     btn.onclick=()=>{S.view=item.id;S.selUnit=null;refreshAll()}
     nav.append(btn)
   }
-  mkNav({id:'dashboard',label:'대시보드',icon:'🏠'})
+  if(isTabletLayout()){
+    const open=S.tabletDashOpen
+    const group=el('button',{cls:'nav-a'+(S.view==='dashboard'?' active':''),'aria-expanded':String(open),'aria-controls':'tablet-dashboard-tabs'},'🏠 대시보드',el('span',{cls:'nav-caret'},open?'▾':'▸'))
+    group.onclick=()=>{S.tabletDashOpen=S.view==='dashboard'?!open:true;S.view='dashboard';S.selUnit=null;refreshAll()}
+    nav.append(group)
+    if(open){
+      const tabs=el('div',{id:'tablet-dashboard-tabs',role:'group','aria-label':'대시보드 화면'})
+      for(const [id,label] of [['cal','일정'],['status','제출 현황']]){
+        const active=S.view==='dashboard'&&S.tabletTab===id
+        const btn=el('button',{cls:'nav-a nav-kid'+(active?' active':''),'aria-current':active?'page':'false'},label)
+        btn.onclick=()=>{S.tabletTab=id;S.view='dashboard';S.selUnit=null;refreshAll()}
+        tabs.append(btn)
+      }
+      nav.append(tabs)
+    }
+  }else mkNav({id:'dashboard',label:'대시보드',icon:'🏠'})
 
   // 사업부/법인 — 담당자(업로더)와 관리자에게만 노출
   const myUnits=topUnits().filter(u=>canOpenUnit(u.id))
@@ -1294,14 +1343,20 @@ function renderDashboard() {
     if(ses&&ses.dates.includes(S.selDate)) dayFocus=S.selDate    // 보고가 있는 날 → 그 날짜만
   }
   const view=ses?(dayFocus?{...ses,dates:[dayFocus],evs:ses.evs.filter(e=>e.date===dayFocus)}:ses):null
-  const phTop=el('div',{cls:'ph ph-clock'})
-  phTop.append(el('div',{},el('h2',{},'회의체 대시보드'),clockBar()))
-  const askBtn=el('button',{cls:'askbtn'},'💬 관리자 문의')
-  askBtn.onclick=()=>openModal({type:'askAdmin',data:{}})
-  phTop.append(askBtn)
+  const tablet=isTabletLayout()
+  const phTop=el('div',{cls:tablet?'tablet-dash-header':'ph ph-clock'})
+  const title=tablet?el('div',{cls:'tablet-title-row'},el('h2',{},S.tabletTab==='cal'?'일정':'제출 현황')):el('div',{},el('h2',{},'회의체 대시보드'),clockBar())
+  phTop.append(title)
+  if(canAskAdmin()){
+    const askBtn=el('button',{cls:'askbtn'},'💬 관리자 문의')
+    askBtn.onclick=()=>openModal({type:'askAdmin',data:{}})
+    ;(tablet?title:phTop).append(askBtn)
+  }
+  if(tablet)phTop.append(el('section',{cls:'tablet-clock-panel','aria-label':'세계 시간'},el('div',{cls:'tablet-clock-label'},'세계 시간'),clockBar()))
   frag.append(phTop)
 
-  const narrow=isPhone()
+  const narrow=isPhone()||tablet
+  const activeTab=tablet?S.tabletTab:S.mtab
   const grid=el('div',{cls:'dash-grid',style:{display:'grid',gridTemplateColumns:'minmax(0,2fr) minmax(340px,1fr)',gap:'18px',alignItems:'start'}})
   // ── 왼쪽: 이번 달 달력
   const left=el('div',{})
@@ -1314,8 +1369,8 @@ function renderDashboard() {
   lh.append(el('div',{style:{fontSize:'15px',fontWeight:'800'}},`📅 ${fmtYM(y,m)} 일정`),nav)
   left.append(lh)
   if(isNarrow()) left.append(agendaList(y,m,sessionDays(ses)))
-  else { left.append(calGrid(y,m,{highlight:sessionDays(ses),compact:true,onSelect:d=>{S.selDate=(S.selDate===d?null:d);refreshMain()}})); left.append(calLegend()) }
-  if(!narrow||S.mtab==='cal') grid.append(left)
+  else { left.append(calGrid(y,m,{highlight:sessionDays(ses),compact:true,onSelect:d=>{S.selDate=(S.selDate===d?null:d);if(tablet){S.tabletTab='status';S.tabletDashOpen=true;refreshAll()}else refreshMain()}})); left.append(calLegend()) }
+  if(!narrow||activeTab==='cal') grid.append(left)
 
   // ── 오른쪽: 자료 확인 (다가오는 보고 세션)
   const right=el('div',{cls:'dash-right'})
@@ -1325,7 +1380,7 @@ function renderDashboard() {
   rh.append(rt)
   if(dayFocus){const c=el('span',{cls:'chip on',style:{cursor:'pointer'}},`${fmtMD(dayFocus)}만 보기 ✕`); c.title='클릭하면 이 주 전체 보기'; c.onclick=()=>{S.selDate=null;refreshMain()}; rh.append(c)}
   right.append(rh)
-  if(narrow&&S.mtab==='status'){
+  if(narrow&&activeTab==='status'){
     const picker=el('div',{cls:'sespick'})
     const list=sessionsInRange()
     for(const s of list){
@@ -1491,7 +1546,7 @@ function renderDashboard() {
       db.append(h,bd); right.append(db)
     }
   }
-  if(!narrow||S.mtab==='status') grid.append(right)
+  if(!narrow||activeTab==='status') grid.append(right)
   frag.append(grid)
   return frag
 }
@@ -1975,8 +2030,58 @@ function renderAdmin(){
   return frag
 }
 
+// 로그인한 모든 권한에서 연락처만 조회한다. 전체 프로필/권한 목록은 내려받지 않는다.
+function normalizeAdminContacts(rows){
+  const byEmail=new Map()
+  for(const row of rows||[]){
+    const email=String(row.email||'').trim().toLowerCase()
+    if(!email||byEmail.has(email))continue
+    byEmail.set(email,{name:String(row.name||'').trim()||email.split('@')[0],email})
+  }
+  return [...byEmail.values()].sort((a,b)=>a.name.localeCompare(b.name,'ko')||a.email.localeCompare(b.email))
+}
+async function fetchAdminContacts(){
+  try{
+    const {data,error}=await sb.rpc('dashboard_admin_contacts')
+    if(!error&&Array.isArray(data))return {admins:normalizeAdminContacts(data),complete:true}
+  }catch(e){}
+  // 전용 조회 함수가 아직 없으면 기존 정책으로 허용된 연락처만 표시한다.
+  try{
+    const {data,error}=await sb.from('profiles').select('name,email').eq('role','admin')
+    if(!error)return {admins:normalizeAdminContacts(data),complete:false}
+  }catch(e){}
+  return {admins:[],complete:false}
+}
+async function fillAdminContacts(holder){
+  holder.replaceChildren(el('div',{cls:'txs tmu'},'총 관리자 목록을 불러오는 중…'))
+  const userId=S.user?.id
+  const result=await fetchAdminContacts()
+  if(!holder.isConnected||S.user?.id!==userId||!canAskAdmin())return
+  holder.replaceChildren()
+  if(!result.complete){
+    const notice=el('div',{cls:'flash err',style:{fontSize:'12px'}},'전체 관리자 목록을 불러오지 못했습니다. 아래 확인 가능한 연락처로 문의해 주세요.')
+    const retry=el('button',{cls:'btn btn-sm',style:{marginLeft:'8px'}},'다시 불러오기')
+    retry.onclick=()=>fillAdminContacts(holder)
+    notice.append(retry);holder.append(notice)
+  }
+  const admins=result.admins.length?result.admins:[ADMIN_CONTACT]
+  if(!result.admins.length)holder.append(el('div',{cls:'txs tmu',style:{marginBottom:'6px'}},result.complete?'등록된 총 관리자 연락처가 없어 기본 문의처를 표시합니다.':'기본 문의처'))
+  const subj=encodeURIComponent('[회의체 대시보드] 문의')
+  const bodyTxt=encodeURIComponent(`문의자: ${S.profile?.name||''} (${S.user?.email||''})\n권한: ${ROLE_NAME[S.profile?.role]||''}\n\n문의 내용:\n`)
+  const list=el('div',{cls:'asklist'})
+  for(const a of admins){
+    const href=`mailto:${a.email}?subject=${subj}&body=${bodyTxt}`
+    const row=el('div',{cls:'askrow'})
+    row.append(el('span',{cls:'nm'},a.name),el('a',{cls:'em2',href},a.email))
+    const cp=el('button',{cls:'btn btn-sm',style:{marginLeft:'auto'}},'주소 복사');cp.onclick=()=>copyText(a.email,'메일주소 복사됨')
+    row.append(cp,el('a',{cls:'btn btn-p btn-sm',href},'메일 쓰기'));list.append(row)
+  }
+  holder.append(list)
+}
+
 // ── 모달 ────────────────────────────────────────────────
 function openModal(config){
+  if(config.type==='askAdmin'&&!canAskAdmin())return
   const overlay=el('div',{cls:'overlay'})
   overlay.onclick=e=>{if(e.target===overlay)overlay.remove()}
   const modal=el('div',{cls:'modal'+(['uploadDoc','grantRole','addContact','editContact','askAdmin'].includes(config.type)?' wide':'')})
@@ -2258,26 +2363,10 @@ function openModal(config){
       holder.append(buildHist()); body.append(holder)
     }
     if(t==='askAdmin'){
-      body.append(el('div',{cls:'txs tmu',style:{marginBottom:'4px'}},'권한 요청, 일정 수정, 자료 관련 문의는 기획조정팀 담당자에게 연락해 주세요.'))
-      const admins=[]
-      const seen=new Set()
-      for(const u of [...(S.users||[]),...(S.grants||[])]){
-        if(u.role!=='admin')continue
-        const em=(u.email||'').toLowerCase(); if(!em||seen.has(em))continue; seen.add(em)
-        admins.push({name:u.name||em.split('@')[0],email:u.email})
-      }
-      if(!admins.length) admins.push(ADMIN_CONTACT)
-      const subj=encodeURIComponent('[회의체 대시보드] 문의')
-      const bodyTxt=encodeURIComponent(`문의자: ${S.profile?.name||''} (${S.user?.email||''})\n권한: ${ROLE_NAME[S.profile?.role]||''}\n\n문의 내용:\n`)
-      const list=el('div',{cls:'asklist'})
-      for(const a of admins){
-        const row=el('div',{cls:'askrow'})
-        row.append(el('span',{cls:'nm'},a.name),el('a',{cls:'em2',href:`mailto:${a.email}?subject=${subj}&body=${bodyTxt}`},a.email))
-        const cp=el('button',{cls:'btn btn-sm',style:{marginLeft:'auto'}},'주소 복사'); cp.onclick=()=>copyText(a.email,'메일주소 복사됨')
-        const mb=el('a',{cls:'btn btn-p btn-sm',href:`mailto:${a.email}?subject=${subj}&body=${bodyTxt}`},'메일 쓰기')
-        row.append(cp,mb); list.append(row)
-      }
-      body.append(list)
+      body.append(el('div',{cls:'txs tmu',style:{marginBottom:'8px'}},'권한 요청, 일정 수정, 자료 관련 문의는 아래 총 관리자에게 연락해 주세요.'))
+      const holder=el('div',{'aria-live':'polite'})
+      body.append(holder)
+      fillAdminContacts(holder)
       body.append(el('div',{cls:'txs tmu',style:{marginTop:'10px',lineHeight:'1.6'}},'메일 쓰기를 누르면 문의자 정보가 자동으로 채워진 메일이 열립니다.'))
     }
     if(t==='myAccount'){
