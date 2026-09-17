@@ -187,6 +187,10 @@ button,input,select,textarea{font-family:inherit;font-size:13px}
 .filebox:hover{background:#f8fafc;border-color:#2563eb}.filebox.has{border-style:solid;border-color:#059669;color:#065f46;background:#ecfdf5}
 .filebox.dragover{background:#eff6ff;border-color:#2563eb;border-style:solid;color:#1d4ed8}
 .ph-clock{align-items:flex-start;gap:16px;flex-wrap:wrap}
+.sespick{display:flex;gap:6px;overflow-x:auto;padding-bottom:8px;margin-bottom:6px;-webkit-overflow-scrolling:touch}
+.sespick .chip{white-space:nowrap;flex:0 0 auto;height:30px;font-size:11.5px;font-weight:700}
+.sespick .chip.past{color:#9ca3af}
+.sespick .chip.past.on{color:#fff}
 .mtabs{position:sticky;bottom:0;display:flex;background:#fff;border-top:1px solid #e5e7eb;box-shadow:0 -2px 10px rgba(0,0,0,.05);z-index:60;padding-bottom:env(safe-area-inset-bottom)}
 .mtab{flex:1;border:none;background:none;padding:8px 2px 9px;display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer;color:#9ca3af}
 .mtab .ic{font-size:17px;line-height:1}
@@ -422,7 +426,7 @@ const S = {
   events: [], holidays: [], docs: [], users: [], grants: [], recipients: [], mailRules: [], selDate: null,
   rcp: {tab:'list', grps:[], org:'전체', status:'전체', q:''},   // grps 비어있으면 전체
   calY: new Date().getFullYear(), calM: new Date().getMonth(),
-  uploading: false, selLeaf: null, mtab:'cal', showClocks:false, expanded: new Set(), sbOpen: new Set(), evForm: null, selEvent: null, selEventKey: null,
+  uploading: false, selLeaf: null, mtab:'cal', showClocks:false, sesMon:null, expanded: new Set(), sbOpen: new Set(), evForm: null, selEvent: null, selEventKey: null,
 }
 
 // ── 유틸 ────────────────────────────────────────────────
@@ -509,6 +513,15 @@ function sessionDays(ses){
   if(!ses)return new Set()
   const mon=ses.mon, end=addDays(mon,6)
   return new Set(S.events.filter(e=>e.date>=mon&&e.date<=end).map(e=>e.date))
+}
+// 자료 보존 기간(2주) 내 지난 보고 + 다가오는 보고
+function sessionsInRange(){
+  const out=[]; let mon=mondayOf(addDays(today(),-DOC_RETENTION_DAYS)); const limit=mondayOf(addDays(today(),28))
+  for(let i=0;i<16;i++){
+    const s=findSession(mon); if(!s||s.mon>limit) break
+    out.push(s); mon=addDays(s.mon,7)
+  }
+  return out
 }
 function targetSession(){ const td=today(), dow=new Date(td+'T00:00:00').getDay(); const mon=mondayOf(td); return findSession((dow>=4||dow===0)?addDays(mon,7):mon) }
 const shortName=n=>n.replace(/사업부$|사업담당$|담당$|법인$/,'')
@@ -1185,6 +1198,7 @@ function renderDashboard() {
   ensureHolidays(y)
   // 기준 세션: 선택한 날짜가 속한 주에 보고가 있으면 그 주, 없으면 다가오는 보고
   let ses=targetSession(), dayFocus=null
+  if(S.sesMon){ const s0=findSession(S.sesMon); if(s0&&s0.mon===S.sesMon) ses=s0 }
   if(S.selDate){
     const mon=mondayOf(S.selDate), s2=findSession(mon)
     if(s2&&s2.mon===mon) ses=s2                                  // 그 주에 보고가 있음
@@ -1222,6 +1236,17 @@ function renderDashboard() {
   rh.append(rt)
   if(dayFocus){const c=el('span',{cls:'chip on',style:{cursor:'pointer'}},`${fmtMD(dayFocus)}만 보기 ✕`); c.title='클릭하면 이 주 전체 보기'; c.onclick=()=>{S.selDate=null;refreshMain()}; rh.append(c)}
   right.append(rh)
+  if(narrow&&S.mtab==='status'){
+    const picker=el('div',{cls:'sespick'})
+    const list=sessionsInRange()
+    for(const s of list){
+      const past=today()>s.dates.at(-1)
+      const c=el('span',{cls:'chip'+(ses&&s.mon===ses.mon?' on':'')+(past?' past':'')},`${wl(s.label)} ${TYPE_LABEL(s.type)}`)
+      c.onclick=()=>{S.sesMon=s.mon;S.selDate=null;refreshMain();window.scrollTo(0,0)}
+      picker.append(c)
+    }
+    right.append(el('div',{cls:'txs tmu',style:{marginBottom:'5px'}},`최근 ${DOC_RETENTION_DAYS}일 이내 보고 · 이후 자동 삭제`),picker)
+  }
   const box=el('div',{cls:'sesbox'})
   if(!view){
     box.append(el('div',{cls:'empty'},'예정된 보고 일정이 없습니다'))
