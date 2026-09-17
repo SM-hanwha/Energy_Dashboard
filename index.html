@@ -18,7 +18,7 @@ button,input,select,textarea{font-family:inherit;font-size:13px}
 .applayout{display:flex;flex-direction:column;height:100vh;overflow:hidden}
 .layout{display:flex;flex:1;min-height:0;overflow:hidden}
 .sidebar{width:190px;min-width:190px;background:#fff;border-right:1px solid #e5e7eb;display:flex;flex-direction:column;overflow-y:auto;flex-shrink:0}
-.main{flex:1;min-width:0;overflow-y:auto;background:#f0f2f5}
+.main{flex:1;overflow-y:auto;background:#f0f2f5}
 .page{padding:24px}
 .sb-hdr{padding:16px 14px 12px;border-bottom:1px solid #e5e7eb}
 .sb-hdr h1{font-size:13px;font-weight:700}
@@ -199,7 +199,6 @@ button,input,select,textarea{font-family:inherit;font-size:13px}
 .mrow .ic{font-size:17px;width:22px;text-align:center;flex-shrink:0}
 .mrow .unit-icon{display:flex;align-items:center;justify-content:center}
 .mrow .unit-icon .udot{width:10px;height:10px}
-.mrow .t1{white-space:normal;word-break:keep-all;overflow-wrap:anywhere}
 .mrow .tx{flex:1;min-width:0}
 .mrow .t1{font-size:13.5px;font-weight:700;color:#1f2937}
 .mrow .t2{font-size:11px;color:#9ca3af;margin-top:2px}
@@ -362,30 +361,6 @@ button,input,select,textarea{font-family:inherit;font-size:13px}
 .attitem .x{color:#dc2626;cursor:pointer;font-weight:800}
 @media (max-width:640px){.up2{grid-template-columns:1fr}}
 .modal{background:#fff;border-radius:12px;padding:22px;width:380px;max-width:calc(100vw - 24px);max-height:85vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.15)}
-/* 화면 폭에 맞춘 달력·자료 확인: 긴 부서명과 메모를 숨기지 않는다. */
-.dash-grid{display:grid;grid-template-columns:minmax(0,2fr) minmax(400px,1fr);gap:18px;align-items:start}
-.dash-grid>*{min-width:0}
-.cal-toolbar{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:10px}
-.cal.compact{container-type:inline-size}
-.cal.compact .evl,.agenda .evl{align-items:start;white-space:normal}
-.cal.compact .evl .evdot,.agenda .evl .evdot{margin-top:4px}
-.cal.compact .evl .n,.agenda .evl .n{display:block;overflow:visible;white-space:normal;word-break:keep-all;overflow-wrap:anywhere}
-.cal.compact .evl .nmtxt{white-space:normal}
-.cal.compact .evl .memo,.agenda .evl .memo{display:block;overflow:visible;white-space:normal}
-/* 일곱 칸이 좁아지면 시간을 위에 두어 부서명 너비를 확보한다. */
-@container (max-width:1150px){
-  .cal.compact .evl{grid-template-columns:8px minmax(0,1fr);row-gap:1px;padding:3px 0}
-  .cal.compact .evl .t{grid-column:1 / -1}
-}
-.sesbox>.sesrow{flex-wrap:wrap;row-gap:6px;align-items:flex-start}
-.sesbox>.sesrow>.tm{line-height:1.5}
-.sesbox>.sesrow>.evdot{margin-top:5px}
-.sesbox>.sesrow>.un{flex:1 1 140px;white-space:normal;overflow:visible;word-break:keep-all;overflow-wrap:anywhere;line-height:1.5}
-.sesbox>.sesrow>.sp{display:none}
-.sesbox>.sesrow>.status-actions{display:flex;align-items:center;flex-wrap:wrap;gap:6px;margin-left:auto;max-width:100%}
-@media (max-width:1500px){
-  .dash-grid{grid-template-columns:minmax(0,1fr)}
-}
 /* ── 반응형: 좁은 화면(아이패드 세로·폰) ── */
 .topbar{display:none}
 .agenda{background:#fff;border:1px solid #e5e7eb;border-radius:12px;overflow:hidden}
@@ -438,12 +413,42 @@ button,input,select,textarea{font-family:inherit;font-size:13px}
 .loading{display:flex;align-items:center;justify-content:center;height:100vh;color:#6b7280;font-size:14px;flex-direction:column;gap:12px}
 .spin{width:32px;height:32px;border:3px solid #e5e7eb;border-top-color:#2563eb;border-radius:50%;animation:spin .7s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
+/* 태블릿 전용 보정: PC의 기존 달력·제출 현황 스타일은 유지한다. */
+@media (min-width:641px){
+  html.tablet-device .main{min-width:0}
+  html.tablet-device .dash-grid{grid-template-columns:minmax(0,1fr) !important}
+  html.tablet-device .dash-grid>*{min-width:0}
+  html.tablet-device .cal.compact .evl{grid-template-columns:8px minmax(0,1fr);align-items:start;white-space:normal;row-gap:1px;padding:3px 0}
+  html.tablet-device .cal.compact .evl .t{grid-column:1 / -1}
+  html.tablet-device .cal.compact .evl .evdot,
+  html.tablet-device .agenda .evl .evdot{margin-top:4px}
+  html.tablet-device .agenda .evl{align-items:start;white-space:normal}
+  html.tablet-device .cal.compact .evl .n,
+  html.tablet-device .agenda .evl .n{display:block;overflow:visible;white-space:normal;word-break:keep-all;overflow-wrap:anywhere}
+  html.tablet-device .cal.compact .evl .nmtxt{white-space:normal}
+  html.tablet-device .cal.compact .evl .memo,
+  html.tablet-device .agenda .evl .memo{display:block;overflow:visible;white-space:normal}
+  /* 첫 줄에는 부서명, 둘째 줄에는 기존 순서대로 제출·별첨·버튼을 표시한다. */
+  html.tablet-device .sesbox>.sesrow{display:grid;grid-template-columns:40px 8px minmax(0,1fr) 58px 52px 54px;align-items:start;gap:6px}
+  html.tablet-device .sesbox>.sesrow>.tm{grid-column:1;grid-row:1;line-height:1.5}
+  html.tablet-device .sesbox>.sesrow>.evdot{grid-column:2;grid-row:1;margin-top:5px}
+  html.tablet-device .sesbox>.sesrow>.un{grid-column:3 / -1;grid-row:1;white-space:normal;overflow:visible;word-break:keep-all;overflow-wrap:anywhere;line-height:1.5}
+  html.tablet-device .sesbox>.sesrow>.sp{display:none}
+  html.tablet-device .sesbox>.sesrow>.slot-rep{grid-column:4;grid-row:2}
+  html.tablet-device .sesbox>.sesrow>.slot-att{grid-column:5;grid-row:2}
+  html.tablet-device .sesbox>.sesrow>.slot-btn{grid-column:6;grid-row:2}
+  html.tablet-device .sesbox>.sesrow>.st{grid-column:4 / -1;grid-row:2}
+}
 </style>
 </head>
 <body>
 <div id="root"><div class="loading"><div class="spin"></div>로딩 중...</div></div>
 
 <script>
+// iPad의 데스크톱 Safari 모드와 Android 태블릿을 구분한다. 화면 폭만으로 PC를 태블릿으로 처리하지 않는다.
+const isTabletDevice=()=>/iPad/.test(navigator.userAgent)||(/Macintosh/.test(navigator.userAgent)&&navigator.maxTouchPoints>1)||(/Android/.test(navigator.userAgent)&&!/Mobile/.test(navigator.userAgent))
+document.documentElement.classList.toggle('tablet-device',isTabletDevice())
+
 // ╔══════════════════════════════════════════════════════╗
 // ║  ★ 설정 영역 - Supabase 프로젝트 정보를 입력하세요  ║
 // ╚══════════════════════════════════════════════════════╝
@@ -1193,11 +1198,7 @@ function renderMobileTabs(){
   }
   return bar
 }
-let _rz=null, _wasPhone=isPhone(); window.addEventListener('resize',()=>{clearTimeout(_rz);_rz=setTimeout(()=>{
-  const phone=isPhone(), changed=phone!==_wasPhone; _wasPhone=phone
-  if(!S.user)return
-  if(changed)refreshAll();else if(S.view==='dashboard')refreshMain()
-},200)})
+let _rz=null; window.addEventListener('resize',()=>{clearTimeout(_rz);_rz=setTimeout(()=>{if(S.user&&S.view==='dashboard')refreshMain()},200)})
 function renderMainArea() {
   const main=el('div',{id:'main-area',cls:'main'})
   const page=el('div',{cls:'page'})
@@ -1301,10 +1302,10 @@ function renderDashboard() {
   frag.append(phTop)
 
   const narrow=isPhone()
-  const grid=el('div',{cls:'dash-grid'})
+  const grid=el('div',{cls:'dash-grid',style:{display:'grid',gridTemplateColumns:'minmax(0,2fr) minmax(340px,1fr)',gap:'18px',alignItems:'start'}})
   // ── 왼쪽: 이번 달 달력
   const left=el('div',{})
-  const lh=el('div',{cls:'cal-toolbar'})
+  const lh=el('div',{style:{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:'10px'}})
   const nav=el('div',{cls:'flex'})
   const prev=el('button',{cls:'btn btn-sm'},'‹'); prev.onclick=()=>{if(m===0){S.dashY=y-1;S.dashM=11}else{S.dashY=y;S.dashM=m-1};refreshMain()}
   const next=el('button',{cls:'btn btn-sm'},'›'); next.onclick=()=>{if(m===11){S.dashY=y+1;S.dashM=0}else{S.dashY=y;S.dashM=m+1};refreshMain()}
@@ -1433,11 +1434,6 @@ function renderDashboard() {
         if(open) kids.forEach((k,i)=>{const cr=el('div',{cls:'sesrow child'});const klink=el('span',{cls:'clk',title:'클릭하면 제출 이력 확인'},k.name);if(kidSt[i].parts._hist)klink.onclick=e=>{e.stopPropagation();openModal({type:'docHistory',data:kidSt[i].parts._hist})};const kn=el('div',{cls:'un ell'},klink);cr.append(el('span',{cls:'tm'},''),kn,el('span',{cls:'sp'}),...kidSt[i].parts);if(kidSt[i].parts._drop)acceptDrop(cr,kidSt[i].parts._drop);box.append(cr)})
       }
     })
-    // 상태·별첨·버튼을 함께 이동해 부서명 공간을 침범하지 않게 한다.
-    for(const row of Array.from(box.children).filter(e=>e.classList.contains('sesrow'))){
-      const slots=Array.from(row.children).filter(e=>e.matches('.slot-rep,.slot-att,.slot-btn'))
-      if(slots.length) row.append(el('div',{cls:'status-actions'},...slots))
-    }
     box.append(el('div',{cls:'sesfoot'},el('span',{},tot?`제출 ${done} / ${tot}`:'제출 대상 없음'),el('span',{cls:'fw7',style:{color:done===tot?'#059669':'#dc2626'}},!tot?'생략':done===tot?'전 사업부/법인 제출 완료':`미제출 ${tot-done}`)))
     // 전체 내려받기: 전 사업부 제출 완료 시에만 활성화
     const nFiles=sessionSlots(view).filter(s=>docsBySlot[s.leaf.id]).length
