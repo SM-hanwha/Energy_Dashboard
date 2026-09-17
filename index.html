@@ -12,7 +12,7 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-html,body{height:100%;font-family:'Malgun Gothic','맑은 고딕','Apple SD Gothic Neo',sans-serif;font-size:14px;color:#1a1a1a;background:#f0f2f5}
+html,body{height:100%;font-family:'Malgun Gothic','맑은 고딕','Apple SD Gothic Neo',sans-serif;font-size:14px;color:#1a1a1a;background:#f0f2f5;-webkit-text-size-adjust:100%;text-size-adjust:100%}
 a{text-decoration:none;color:inherit}
 button,input,select,textarea{font-family:inherit;font-size:13px}
 .applayout{display:flex;flex-direction:column;height:100vh;overflow:hidden}
@@ -378,7 +378,13 @@ button,input,select,textarea{font-family:inherit;font-size:13px}
   .sidebar .sb-close{display:block}
   .main{overflow:visible}
   .page{padding:12px}
-  .dash-grid{grid-template-columns:1fr !important}
+  .dash-grid{grid-template-columns:minmax(0,1fr) !important}
+  .dash-grid>*{min-width:0}
+  .main,.page,.layout{min-width:0;max-width:100%}
+  body{overflow-x:hidden}
+  .sesbox,.sesrow,.cal,.agenda,.unit2,.ucol{min-width:0;max-width:100%}
+  .sesrow{flex-wrap:wrap;row-gap:4px}
+  .sesrow .un{flex:1 1 auto}
   .dash-right{order:-1}
   .ph{flex-wrap:wrap;gap:8px}
   .ph h2{font-size:17px}
