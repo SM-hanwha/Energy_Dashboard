@@ -191,6 +191,16 @@ button,input,select,textarea{font-family:inherit;font-size:13px}
 .sespick .chip{white-space:nowrap;flex:0 0 auto;height:30px;font-size:11.5px;font-weight:700}
 .sespick .chip.past{color:#9ca3af}
 .sespick .chip.past.on{color:#fff}
+.msec-t{font-size:11.5px;font-weight:800;color:#9ca3af;margin:14px 2px 6px}
+.msec{background:#fff;border:1px solid #e5e7eb;border-radius:11px;overflow:hidden}
+.mrow{width:100%;display:flex;align-items:center;gap:10px;padding:13px 14px;background:none;border:none;border-bottom:1px solid #f3f4f6;cursor:pointer;text-align:left}
+.mrow:last-child{border-bottom:none}
+.mrow:active{background:#f3f4f6}
+.mrow .ic{font-size:17px;width:22px;text-align:center;flex-shrink:0}
+.mrow .tx{flex:1;min-width:0}
+.mrow .t1{font-size:13.5px;font-weight:700;color:#1f2937}
+.mrow .t2{font-size:11px;color:#9ca3af;margin-top:2px}
+.mrow .ar{color:#d1d5db;font-size:16px}
 .mtabs{position:sticky;bottom:0;display:flex;background:#fff;border-top:1px solid #e5e7eb;box-shadow:0 -2px 10px rgba(0,0,0,.05);z-index:60;padding-bottom:env(safe-area-inset-bottom)}
 .mtab{flex:1;border:none;background:none;padding:8px 2px 9px;display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer;color:#9ca3af}
 .mtab .ic{font-size:17px;line-height:1}
@@ -1089,6 +1099,45 @@ function renderApp() {
 }
 const isNarrow=()=>window.matchMedia('(max-width:860px)').matches
 const isPhone =()=>window.matchMedia('(max-width:640px)').matches   // 휴대폰: 하단 탭 + 섹션 분리
+// 휴대폰 '더보기' — 권한에 따라 항목이 달라짐
+function renderMore(){
+  const frag=document.createDocumentFragment()
+  frag.append(el('div',{cls:'ph'},el('h2',{},'더보기')))
+  const sec=(title,items)=>{
+    if(!items.length)return
+    frag.append(el('div',{cls:'msec-t'},title))
+    const box=el('div',{cls:'msec'})
+    for(const it of items){
+      const row=el('button',{cls:'mrow'})
+      row.append(el('span',{cls:'ic'},it.icon),el('div',{cls:'tx'},el('div',{cls:'t1'},it.label),it.desc?el('div',{cls:'t2'},it.desc):null),el('span',{cls:'ar'},'›'))
+      row.onclick=it.onclick; box.append(row)
+    }
+    frag.append(box)
+  }
+  // 담당 사업부/법인
+  const units=[]
+  for(const u of topUnits().filter(u=>canOpenUnit(u.id))){
+    const kids=kidsOf(u.id).filter(k=>canUp(k.id)||isAdmin())
+    if(kids.length&&!u.merge_kids) for(const k of kids) units.push({icon:'📄',label:`${u.name} › ${k.name}`,onclick:()=>{S.view='unit';S.selUnit=u;S.selLeaf=k.id;S.selEventKey=null;refreshAll();window.scrollTo(0,0)}})
+    else units.push({icon:'📄',label:u.name,onclick:()=>{S.view='unit';S.selUnit=u;S.selLeaf=u.id;S.selEventKey=null;refreshAll();window.scrollTo(0,0)}})
+  }
+  sec('자료 제출 · 조회',units)
+  // 관리자 메뉴
+  const admin=[]
+  if(isAdmin()){
+    admin.push({icon:'📨',label:'수신인 목록',desc:'회의체 수신인 · 메일 규칙',onclick:()=>{S.view='recipients';refreshAll();window.scrollTo(0,0)}})
+    admin.push({icon:'👥',label:'담당자 연락처',desc:'사업부/법인 담당자',onclick:()=>{S.view='contacts';refreshAll();window.scrollTo(0,0)}})
+    admin.push({icon:'⚙',label:'관리자 설정',desc:'사업부/법인 · 사용자 권한',onclick:()=>{S.view='admin';refreshAll();window.scrollTo(0,0)}})
+  }
+  sec('관리',admin)
+  // 계정
+  sec('계정',[
+    {icon:'🙍',label:'내 계정',desc:`${S.profile?.name||''} · ${ROLE_NAME[S.profile?.role]||''}`,onclick:()=>openModal({type:'myAccount',data:{p1:'',p2:''}})},
+    {icon:'💬',label:'관리자 문의',desc:'권한 요청 · 일정 수정 문의',onclick:()=>openModal({type:'askAdmin',data:{}})},
+    {icon:'↩',label:'로그아웃',onclick:async()=>{await sb.auth.signOut();S.user=null;S.profile=null;Object.assign(S,{units:[],contacts:[],events:[],docs:[],users:[],recipients:[],mailRules:[]});render()}},
+  ])
+  return frag
+}
 // 휴대폰 하단 탭
 function renderMobileTabs(){
   const myUnits=topUnits().filter(u=>canOpenUnit(u.id))
@@ -1102,7 +1151,7 @@ function renderMobileTabs(){
     b.append(el('span',{cls:'ic'},it.icon),el('span',{cls:'tx'},it.label))
     b.onclick=()=>{
       if(it.id==='submit'){ const u=myUnits[0]; if(u){S.view='unit';S.selUnit=u;S.selEventKey=null} }
-      else if(it.id==='more'){ document.querySelector('.sidebar')?.classList.add('open'); return }
+      else if(it.id==='more'){ S.view='more'; S.selUnit=null }
       else { S.view='dashboard'; S.mtab=it.id; S.selUnit=null }
       refreshAll(); window.scrollTo(0,0)
     }
@@ -1120,6 +1169,7 @@ function renderMainArea() {
   else if(S.view==='recipients'&&isAdmin()) page.append(renderRecipients())
   else if(S.view==='contacts'&&isAdmin()) page.append(renderContacts())
   else if(S.view==='admin'&&isAdmin()) page.append(renderAdmin())
+  else if(S.view==='more') page.append(renderMore())
   else { S.view='dashboard'; S.selUnit=null; page.append(renderDashboard()) }   // 권한 없는 화면 접근 → 대시보드
   return main
 }
