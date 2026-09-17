@@ -8,6 +8,7 @@
 <meta name="apple-mobile-web-app-title" content="회의체 대시보드">
 <meta name="theme-color" content="#ffffff">
 <title>회의체 대시보드</title>
+<meta name="application-version" content="2026-09-18-menu-fix">
 <!-- Supabase JS SDK -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <style>
@@ -467,6 +468,18 @@ button,input,select,textarea{font-family:inherit;font-size:13px}
   html.tablet-device .clockwrap{grid-template-columns:repeat(2,minmax(0,1fr))}
   html.tablet-device .page{padding:12px}
 }
+/* 브라우저 기본 펼침 메뉴: iOS 터치에서도 summary가 직접 열고 닫는다. */
+.mgroup{border-bottom:1px solid #f3f4f6}
+.mgroup:last-child{border-bottom:none}
+.mgroup>summary,.tablet-dashboard-nav>summary{list-style:none;user-select:none;-webkit-tap-highlight-color:transparent}
+.mgroup>summary::-webkit-details-marker,.tablet-dashboard-nav>summary::-webkit-details-marker{display:none}
+.mgroup>summary::marker,.tablet-dashboard-nav>summary::marker{content:''}
+.mgroup>summary{border-bottom:none}
+.mchildren{border-top:1px solid #f3f4f6;background:#f9fafb}
+.mrow-child{padding-left:36px}
+.mrow-child .unit-icon .udot{width:7px;height:7px}
+.mrow-child .t1{font-size:13px;font-weight:600;white-space:normal;word-break:keep-all;overflow-wrap:anywhere}
+.mgroup[open]>summary .ar,.tablet-dashboard-nav[open]>summary .nav-caret{transform:rotate(90deg)}
 </style>
 </head>
 <body>
@@ -474,7 +487,14 @@ button,input,select,textarea{font-family:inherit;font-size:13px}
 
 <script>
 // iPad의 데스크톱 Safari 모드와 Android 태블릿을 구분한다. 화면 폭만으로 PC를 태블릿으로 처리하지 않는다.
-const isTabletDevice=()=>/iPad/.test(navigator.userAgent)||(/Macintosh/.test(navigator.userAgent)&&navigator.maxTouchPoints>1)||(/Android/.test(navigator.userAgent)&&!/Mobile/.test(navigator.userAgent))
+const isTabletDevice=()=>{
+  const ua=navigator.userAgent||'', platform=navigator.platform||''
+  if(/iPhone|iPod/.test(ua))return false
+  if(/iPad/.test(ua+' '+platform))return true
+  const touch=(navigator.maxTouchPoints||navigator.msMaxTouchPoints||0)>1||window.matchMedia('(any-pointer:coarse)').matches||'ontouchstart' in window
+  if((/Macintosh|Mac OS X/.test(ua)||/Mac/.test(platform))&&touch)return true
+  return /Android/.test(ua)&&!/Mobile/.test(ua)
+}
 document.documentElement.classList.toggle('tablet-device',isTabletDevice())
 
 // ╔══════════════════════════════════════════════════════╗
@@ -502,7 +522,7 @@ const S = {
   events: [], holidays: [], docs: [], users: [], grants: [], recipients: [], mailRules: [], selDate: null,
   rcp: {tab:'list', grps:[], org:'전체', status:'전체', q:''},   // grps 비어있으면 전체
   calY: new Date().getFullYear(), calM: new Date().getMonth(),
-  uploading: false, selLeaf: null, mtab:'cal', tabletTab:'cal', tabletDashOpen:false, showClocks:false, sesMon:null, expanded: new Set(), sbOpen: new Set(), evForm: null, selEvent: null, selEventKey: null,
+  uploading: false, selLeaf: null, mtab:'cal', tabletTab:'cal', tabletDashOpen:false, moreOpen:new Set(), showClocks:false, sesMon:null, expanded: new Set(), sbOpen: new Set(), evForm: null, selEvent: null, selEventKey: null,
 }
 
 // ── 유틸 ────────────────────────────────────────────────
@@ -1171,24 +1191,46 @@ const isTabletLayout=()=>isTabletDevice()&&!isPhone()
 function renderMore(){
   const frag=document.createDocumentFragment()
   frag.append(el('div',{cls:'ph'},el('h2',{},'더보기')))
+  const rowContent=it=>[
+    it.color?el('span',{cls:'ic unit-icon','aria-hidden':'true'},el('span',{cls:'udot',style:{background:it.color}})):el('span',{cls:'ic'},it.icon),
+    el('div',{cls:'tx'},el('div',{cls:'t1'},it.label),it.desc?el('div',{cls:'t2'},it.desc):null),
+    el('span',{cls:'ar','aria-hidden':'true'},'›'),
+  ]
   const sec=(title,items)=>{
     if(!items.length)return
     frag.append(el('div',{cls:'msec-t'},title))
     const box=el('div',{cls:'msec'})
     for(const it of items){
-      const row=el('button',{cls:'mrow'})
-      const icon=it.color?el('span',{cls:'ic unit-icon','aria-hidden':'true'},el('span',{cls:'udot',style:{background:it.color}})):el('span',{cls:'ic'},it.icon)
-      row.append(icon,el('div',{cls:'tx'},el('div',{cls:'t1'},it.label),it.desc?el('div',{cls:'t2'},it.desc):null),el('span',{cls:'ar'},'›'))
-      row.onclick=it.onclick; box.append(row)
+      if(it.children?.length){
+        const group=el('details',{cls:'mgroup','data-unit-id':it.id})
+        group.open=S.moreOpen.has(it.id)
+        const summary=el('summary',{cls:'mrow'},...rowContent(it))
+        const children=el('div',{cls:'mchildren',role:'group','aria-label':it.label+' 하위 부서'})
+        for(const child of it.children){
+          const row=el('button',{cls:'mrow mrow-child'},...rowContent(child))
+          row.onclick=()=>{S.moreOpen.add(it.id);child.onclick()};children.append(row)
+        }
+        group.addEventListener('toggle',()=>{if(group.isConnected){if(group.open)S.moreOpen.add(it.id);else S.moreOpen.delete(it.id)}})
+        group.append(summary,children);box.append(group)
+      }else{
+        const row=el('button',{cls:'mrow'},...rowContent(it))
+        row.onclick=it.onclick;box.append(row)
+      }
     }
     frag.append(box)
   }
-  // 담당 사업부/법인
+  // 상위 부서를 먼저 표시하고, 허용된 하위 부서만 눌러 펼친다.
+  const openUnit=(unit,leaf)=>{S.view='unit';S.selUnit=unit;S.selLeaf=leaf.id;S.selEventKey=null;S.selEvent=null;refreshAll();window.scrollTo(0,0)}
   const units=[]
   for(const u of topUnits().filter(u=>canOpenUnit(u.id))){
     const kids=kidsOf(u.id).filter(k=>canUp(k.id)||isAdmin())
-    if(kids.length&&!u.merge_kids) for(const k of kids) units.push({color:k.color||u.color||'#9ca3af',label:`${u.name} › ${k.name}`,onclick:()=>{S.view='unit';S.selUnit=u;S.selLeaf=k.id;S.selEventKey=null;refreshAll();window.scrollTo(0,0)}})
-    else units.push({color:u.color||'#9ca3af',label:u.name,onclick:()=>{S.view='unit';S.selUnit=u;S.selLeaf=u.id;S.selEventKey=null;refreshAll();window.scrollTo(0,0)}})
+    const item={id:u.id,color:u.color||'#9ca3af',label:u.name,onclick:()=>openUnit(u,u)}
+    if(kids.length){
+      item.children=kids.map(k=>({color:k.color||u.color||'#9ca3af',label:k.name,onclick:()=>openUnit(u,k)}))
+      // 취합 조직의 통합본 접근도 유지한다.
+      if(u.merge_kids&&canUp(u.id))item.children.unshift({color:u.color||'#9ca3af',label:'통합 자료',onclick:()=>openUnit(u,u)})
+    }
+    units.push(item)
   }
   sec('자료 제출 · 조회',units)
   // 관리자 메뉴
@@ -1259,20 +1301,22 @@ function renderSidebar() {
     nav.append(btn)
   }
   if(isTabletLayout()){
-    const open=S.tabletDashOpen
-    const group=el('button',{cls:'nav-a'+(S.view==='dashboard'?' active':''),'aria-expanded':String(open),'aria-controls':'tablet-dashboard-tabs'},'🏠 대시보드',el('span',{cls:'nav-caret'},open?'▾':'▸'))
-    group.onclick=()=>{S.tabletDashOpen=S.view==='dashboard'?!open:true;S.view='dashboard';S.selUnit=null;refreshAll()}
-    nav.append(group)
-    if(open){
-      const tabs=el('div',{id:'tablet-dashboard-tabs',role:'group','aria-label':'대시보드 화면'})
-      for(const [id,label] of [['cal','일정'],['status','제출 현황']]){
-        const active=S.view==='dashboard'&&S.tabletTab===id
-        const btn=el('button',{cls:'nav-a nav-kid'+(active?' active':''),'aria-current':active?'page':'false'},label)
-        btn.onclick=()=>{S.tabletTab=id;S.view='dashboard';S.selUnit=null;refreshAll()}
-        tabs.append(btn)
-      }
-      nav.append(tabs)
+    // Safari 기본 펼침 동작을 사용해 메뉴를 누를 때 화면 전체를 다시 만들지 않는다.
+    const group=el('details',{cls:'tablet-dashboard-nav'})
+    group.open=S.tabletDashOpen
+    const summary=el('summary',{cls:'nav-a'+(S.view==='dashboard'?' active':''),'aria-controls':'tablet-dashboard-tabs'},'🏠 대시보드',el('span',{cls:'nav-caret','aria-hidden':'true'},'▸'))
+    summary.onclick=()=>{
+      if(S.view!=='dashboard'){S.tabletDashOpen=true;S.view='dashboard';S.selUnit=null;refreshAll()}
     }
+    group.addEventListener('toggle',()=>{if(group.isConnected)S.tabletDashOpen=group.open})
+    const tabs=el('div',{id:'tablet-dashboard-tabs',role:'group','aria-label':'대시보드 화면'})
+    for(const [id,label] of [['cal','일정'],['status','제출 현황']]){
+      const active=S.view==='dashboard'&&S.tabletTab===id
+      const btn=el('button',{cls:'nav-a nav-kid'+(active?' active':''),'aria-current':active?'page':'false'},label)
+      btn.onclick=()=>{S.tabletDashOpen=true;S.tabletTab=id;S.view='dashboard';S.selUnit=null;refreshAll()}
+      tabs.append(btn)
+    }
+    group.append(summary,tabs);nav.append(group)
   }else mkNav({id:'dashboard',label:'대시보드',icon:'🏠'})
 
   // 사업부/법인 — 담당자(업로더)와 관리자에게만 노출
