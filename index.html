@@ -271,6 +271,7 @@ button,input,select,textarea{font-family:inherit;font-size:13px}
 .allbox .md{font-size:14px;font-weight:800;margin-top:2px;letter-spacing:.02em}
 .allbox.written{background:#f5f3ff;border-color:#c4b5fd;color:#6d28d9}
 .allbox.skipped{background:#f3f4f6;border-color:#cbd5e1;color:#475569}
+.st.expired{display:inline-block;background:#f3f4f6;color:#6b7280;font-size:10.5px;font-weight:700;padding:2px 8px;border-radius:10px;text-align:center}
 .sesrow .st.sk{background:#f3f4f6;color:#6b7280}
 .sesrow .st.att{background:#eef2ff;color:#4338ca}
 .sesrow .st.done{background:#1d4ed8;color:#fff}
@@ -645,6 +646,9 @@ const docBaseDate=d=>{const ev=S.events.find(e=>e.id===d.event_id); return ev?ev
 const docExpireOn=d=>addDays(docBaseDate(d),DOC_RETENTION_DAYS)          // 이 날짜까지 보관, 다음 날 삭제
 const docDaysLeft=d=>Math.round((new Date(docExpireOn(d)+'T00:00:00')-new Date(today()+'T00:00:00'))/864e5)
 const isExpired=d=>today()>docExpireOn(d)
+// 파일이 삭제된 뒤에도 일정 날짜로 보관 기간 만료 여부를 판별합니다.
+const isEventExpired=ev=>!!ev?.date&&today()>addDays(ev.date,DOC_RETENTION_DAYS)
+const expiredBadge=()=>el('span',{cls:'st expired',title:'보고 자료와 별첨 자료의 보관 기간이 만료되었습니다'},'기간 만료')
 function monthWindow(){const t=new Date(today()+'T00:00:00');const from=ds(t.getFullYear(),t.getMonth(),1);const e=new Date(t.getFullYear(),t.getMonth()+2,0);return [from,ds(e.getFullYear(),e.getMonth(),e.getDate())]}
 async function purgeExpiredDocs(){   // 만료 자료 정리 (관리자 접속 시)
   if(!isAdmin())return
@@ -1459,13 +1463,16 @@ function renderDashboard() {
       const lo=addDays(ses.mon,-7), hi=addDays(ses.mon,6)
       return allDocs.filter(d=>d.unit_id===uid&&!d.event_id&&d.report_type===ses.type&&String(d.uploaded_at).slice(0,10)>=lo&&String(d.uploaded_at).slice(0,10)<=hi)
     }
-    let done=0, tot=0; const docsBySlot={}
+    let done=0, tot=0, expired=0; const docsBySlot={}
     const dow=['일','월','화','수','목','금','토']
     const sesHasAtt=S.docs.some(d=>isAttach(d)&&!isExpired(d)&&view.evs.some(e=>e.id===d.event_id))
     const statusParts=(leaf,ev,{merged=false}={})=>{   // [보고 배지][별첨 배지][버튼] 열 고정
       const slot=(cls,child)=>{if(cls==='slot-att'&&!sesHasAtt)return null;const s=el('div',{cls});if(child)s.append(child);return s}
       if(ev.mode==='skipped'){
         return {parts:[slot('slot-rep',el('span',{cls:'st sk'},'생략')),slot('slot-att'),slot('slot-btn')].filter(Boolean),submitted:null}
+      }
+      if(isEventExpired(ev)){
+        return {parts:[slot('slot-rep',expiredBadge()),slot('slot-att'),slot('slot-btn')].filter(Boolean),submitted:null,expired:true}
       }
       const docs=docFor(leaf.id).filter(d=>!isAttach(d)).sort((a,b)=>(b.version||0)-(a.version||0)||String(b.uploaded_at).localeCompare(String(a.uploaded_at)))
       const atts=attachAll(leaf.id,ev.id)
@@ -1510,7 +1517,7 @@ function renderDashboard() {
         const memo=evMemo(ev)
         if(!kids.length){
           const r=mkRow(unit,ev,''); const nm=el('div',{cls:'un ell'},unit.name); if(memo)nm.append(el('span',{cls:'sub'},' '+memo))
-          const st=statusParts(unit,ev); if(st.submitted!==null){tot++; if(st.submitted)done++}
+          const st=statusParts(unit,ev); if(st.expired)expired++; if(st.submitted!==null){tot++; if(st.submitted)done++}
           if(st.parts._hist){const t2=nm.firstChild;const link=el('span',{cls:'clk',title:'클릭하면 제출 이력 확인'},unit.name);link.onclick=e=>{e.stopPropagation();openModal({type:'docHistory',data:st.parts._hist})};nm.replaceChild(link,t2)}
           r.append(nm,el('span',{cls:'sp'}),...st.parts); if(st.parts._drop)acceptDrop(r,st.parts._drop); box.append(r); continue
         }
@@ -1521,31 +1528,33 @@ function renderDashboard() {
         r.append(nm,el('span',{cls:'sp'}))
         const kidSt=kids.map(k=>statusParts(k,ev))
         if(unit.merge_kids){                 // 운영: 4건 모두 제출 → 통합본 1건이 제출 단위
-          const st=statusParts(unit,ev,{merged:true}); if(st.submitted!==null){tot++; if(st.submitted)done++}
+          const st=statusParts(unit,ev,{merged:true}); if(st.expired)expired++; if(st.submitted!==null){tot++; if(st.submitted)done++}
           if(st.parts._hist){const t3=nm.childNodes[1];const link=el('span',{cls:'clk',title:'클릭하면 제출 이력 확인'},unit.name);link.onclick=e=>{e.stopPropagation();openModal({type:'docHistory',data:st.parts._hist})};nm.replaceChild(link,t3)}
           const nk=kidSt.filter(k=>k.submitted).length
-          if(!st.submitted){const b0=st.parts[0].firstChild; if(b0)b0.textContent=`취합 ${nk}/${kids.length}`}
+          if(st.submitted===false){const b0=st.parts[0].firstChild; if(b0)b0.textContent=`취합 ${nk}/${kids.length}`}
           r.append(...st.parts)
         }else{                               // 유럽: 하위 각각이 제출 단위
-          const n=kidSt.filter(k=>k.submitted).length; if(ev.mode!=='skipped'){tot++; if(n===kids.length)done++}
+          const n=kidSt.filter(k=>k.submitted).length; const ended=ev.mode!=='skipped'&&isEventExpired(ev); if(ended)expired++; else if(ev.mode!=='skipped'){tot++; if(n===kids.length)done++}
           // 하위 각각이 제출 단위 — 상위 행은 빈 슬롯으로 라인만 맞춤
-          r.append(el('div',{cls:'slot-rep'}),...(sesHasAtt?[el('div',{cls:'slot-att'})]:[]),el('div',{cls:'slot-btn'}))
+          r.append(el('div',{cls:'slot-rep'},ended?expiredBadge():null),...(sesHasAtt?[el('div',{cls:'slot-att'})]:[]),el('div',{cls:'slot-btn'}))
         }
         r.onclick=e=>{if(e.target.closest('button,.dl'))return;S.expanded.has(unit.id)?S.expanded.delete(unit.id):S.expanded.add(unit.id);refreshMain()}
         box.append(r)
         if(open) kids.forEach((k,i)=>{const cr=el('div',{cls:'sesrow child'});const klink=el('span',{cls:'clk',title:'클릭하면 제출 이력 확인'},k.name);if(kidSt[i].parts._hist)klink.onclick=e=>{e.stopPropagation();openModal({type:'docHistory',data:kidSt[i].parts._hist})};const kn=el('div',{cls:'un ell'},klink);cr.append(el('span',{cls:'tm'},''),kn,el('span',{cls:'sp'}),...kidSt[i].parts);if(kidSt[i].parts._drop)acceptDrop(cr,kidSt[i].parts._drop);box.append(cr)})
       }
     })
-    box.append(el('div',{cls:'sesfoot'},el('span',{},tot?`제출 ${done} / ${tot}`:'제출 대상 없음'),el('span',{cls:'fw7',style:{color:done===tot?'#059669':'#dc2626'}},!tot?'생략':done===tot?'전 사업부/법인 제출 완료':`미제출 ${tot-done}`)))
+    box.append(el('div',{cls:'sesfoot'},
+      el('span',{},tot?`제출 ${done} / ${tot}${expired?` · 기간 만료 ${expired}`:''}`:expired?`기간 만료 ${expired}건`:'제출 대상 없음'),
+      !tot&&expired?expiredBadge():el('span',{cls:'fw7',style:{color:done===tot?'#059669':'#dc2626'}},!tot?'생략':done===tot?(expired?'보관 중인 자료 제출 완료':'전 사업부/법인 제출 완료'):`미제출 ${tot-done}`)))
     // 전체 내려받기: 전 사업부 제출 완료 시에만 활성화
     const nFiles=sessionSlots(view).filter(s=>docsBySlot[s.leaf.id]).length
     const dlRow=el('div',{cls:'sesdl'})
     const nAll=sessionDocsInOrder(view).length
     const dlBtn=el('button',{cls:'btn btn-p'},`📄 전체 다운로드 (${nAll}건)`)
     const pvBtn=el('button',{cls:'btn'},'👁 전체 미리보기')
-    if(done<tot){
+    if(done<tot||!nAll){
       dlBtn.disabled=true; pvBtn.disabled=true
-      dlRow.append(dlBtn,pvBtn,el('div',{cls:'txs tmu',style:{width:'100%'}},'전 사업부/법인 제출 완료 시 활성화'))
+      dlRow.append(dlBtn,pvBtn,el('div',{cls:'txs tmu',style:{width:'100%'}},!tot&&expired?'보관 기간이 만료되었습니다':!nAll&&done===tot?'다운로드할 자료가 없습니다':'전 사업부/법인 제출 완료 시 활성화'))
     }else{
       dlBtn.onclick=async()=>{
         dlBtn.disabled=pvBtn.disabled=true
@@ -1690,12 +1699,18 @@ function renderUnit(){
   card.append(el('div',{cls:'evsum'},
     el('span',{cls:'evsum-d'},`${fmtD(selEv.date)}${selEv.time?' '+selEv.time:''}`),
     el('span',{cls:'f1 ell'},evTitleFor(selEv,leaf)),
-    el('span',{cls:'st '+(evDocs.length?'ok':'no')},evDocs.length?`제출 v${evDocs[0].version||1}`:'미제출')))
+    selEv.mode==='skipped'?el('span',{cls:'st expired'},'생략'):isEventExpired(selEv)?expiredBadge():el('span',{cls:'st '+(evDocs.length?'ok':'no')},evDocs.length?`제출 v${evDocs[0].version||1}`:'미제출')))
 
   // 좌: 보고 자료 / 우: 별첨 자료
   const cols=el('div',{cls:'unit2'})
   const colL=el('div',{cls:'ucol'}), colR=el('div',{cls:'ucol'})
   cols.append(colL,colR); frag.append(cols)
+  if(selEv.mode!=='skipped'&&isEventExpired(selEv)){
+    for(const [col,label] of [[colL,'📄 보고 자료'],[colR,'📎 별첨 자료']]){
+      col.append(el('div',{cls:'uhead'},label),el('div',{cls:'empty',style:{padding:'20px'}},expiredBadge(),el('div',{cls:'txs tmu mt8'},'보관 기간이 만료되었습니다')))
+    }
+    return frag
+  }
 
   const docRow=(doc,{attach=false}={})=>{
     const row=el('div',{cls:'row',style:{flexWrap:'wrap',gap:'8px'}})
@@ -2387,6 +2402,10 @@ function openModal(config){
       const holder=el('div',{})
       const buildHist=()=>{
         const box=el('div',{})
+        if(ev?.mode!=='skipped'&&isEventExpired(ev)){
+          box.append(expiredBadge(),el('div',{cls:'txs tmu mt8'},'보고 자료와 별첨 자료의 보관 기간이 만료되었습니다'))
+          return box
+        }
         const docs=reportDocs(data.unit_id,data.event_id)
         box.append(el('div',{cls:'hist-sec'},`📄 보고 자료 제출 이력 (${docs.length}건)`))
         if(!docs.length) box.append(el('div',{cls:'txs tmu',style:{padding:'4px 0'}},'아직 제출된 자료가 없습니다'))
